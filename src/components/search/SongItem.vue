@@ -60,13 +60,27 @@
                 </n-tag>
             </div>
         </div>
-        <n-button
-            size="small"
-            class="download-btn"
-            @click="$emit('download', song)"
-        >
-            下载
-        </n-button>
+        <div class="song-actions">
+            <n-button
+                size="small"
+                :loading="player.isCurrent(song) && player.status === 'loading'"
+                :type="player.isCurrent(song) ? 'primary' : 'default'"
+                @click.stop="player.play(song)"
+            >
+                {{
+                    player.isCurrent(song) && player.status === 'playing'
+                        ? '暂停'
+                        : '试听'
+                }}
+            </n-button>
+            <n-button
+                size="small"
+                class="download-btn"
+                @click="$emit('download', song)"
+            >
+                下载
+            </n-button>
+        </div>
     </div>
 </template>
 
@@ -78,6 +92,9 @@ import { ALL_QUALITY_ORDER } from '../../types'
 import { fetchCover } from '../../api/musicApi'
 import ArtistNames from './ArtistNames.vue'
 import { getMusicEntityId } from '../../utils/music'
+import { usePlayerStore } from '../../stores/playerStore'
+
+const player = usePlayerStore()
 
 const props = defineProps<{
     song: SongInfo
@@ -230,6 +247,12 @@ watch(
     flex-shrink: 0;
 }
 
+.song-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
 /* 手机保留封面和操作入口，长歌名在剩余空间内省略 */
 @media (max-width: 767px) {
     .song-item {
@@ -239,6 +262,15 @@ watch(
 
     .download-btn {
         min-height: 44px;
+    }
+
+    .song-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .song-actions :deep(.n-button) {
+        min-height: 36px;
     }
 }
 </style>

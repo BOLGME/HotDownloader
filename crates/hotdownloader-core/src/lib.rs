@@ -4,5 +4,6 @@
 pub mod adapters;
 pub mod download;
 pub mod platforms;
+pub mod playback;
 pub mod settings;
 pub mod task;

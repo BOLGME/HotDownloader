@@ -116,6 +116,13 @@ export interface QualityItem {
     size: number // 文件字节大小
 }
 
+export interface PlaybackSource {
+    id: string
+    url: string
+    quality: string
+    contentType: string
+}
+
 /** 歌曲或专辑中的歌手关联信息。 */
 export interface ArtistReference {
     /** 数字 ID 的字符串形式，缺失或无效时为空字符串。 */

@@ -36,6 +36,7 @@
                     </keep-alive>
                 </router-view>
             </main>
+            <PlaybackBar />
         </div>
 
         <!-- 窄屏底部水平导航：在正常文档流中固定占位，菜单始终居中 -->
@@ -61,11 +62,14 @@ import { useNarrowLayout } from '../composables/useNarrowLayout'
 import { isNativeRuntime } from '../api/runtimeApi'
 import { showStorageRecoveryReport } from '../api/storageRecovery'
 import { useTaskStore } from '../stores/taskStore'
+import PlaybackBar from './PlaybackBar.vue'
+import { usePlayerStore } from '../stores/playerStore'
 
 const router = useRouter()
 const route = useRoute()
 const native = isNativeRuntime()
 const taskStore = useTaskStore()
+const player = usePlayerStore()
 const connectionLabel = computed(
     () =>
         ({
@@ -131,6 +135,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    player.stop()
     // 移除路由守卫，避免内存泄漏
     if (removeRouteGuard) {
         removeRouteGuard()
