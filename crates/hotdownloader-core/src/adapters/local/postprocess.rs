@@ -5,7 +5,7 @@ use std::path::Path;
 use futures_util::future::BoxFuture;
 use lofty::config::WriteOptions;
 use lofty::file::{AudioFile, TaggedFileExt};
-use lofty::picture::{MimeType, Picture, PictureType};
+use lofty::picture::{Picture, PictureType};
 use lofty::tag::{ItemKey, Tag, TagType};
 
 use crate::download::context::TaskContext;
@@ -92,12 +92,9 @@ pub fn write_audio_metadata(
         tag.insert_text(ItemKey::Lyrics, lyric.to_string());
     }
     if let Some(bytes) = &assets.cover_bytes {
-        let picture = Picture::new_unchecked(
-            PictureType::CoverFront,
-            Some(MimeType::Jpeg),
-            None,
-            bytes.clone(),
-        );
+        let mut picture = Picture::from_reader(&mut bytes.as_slice())
+            .map_err(|error| format!("读取封面图片失败: {error}"))?;
+        picture.set_pic_type(PictureType::CoverFront);
         tag.remove_picture_type(PictureType::CoverFront);
         tag.push_picture(picture);
     }
@@ -123,6 +120,7 @@ impl DownloadPostprocessor for LocalDownloadPostprocessor {
                 request.context,
                 request.config.write_metadata,
                 request.config.download_lrc,
+                request.config.cover_quality,
             )
             .await;
 

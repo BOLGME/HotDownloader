@@ -2,7 +2,9 @@
 
 use std::path::Path;
 
+use crate::download::config::CoverQuality;
 use crate::download::context::TaskContext;
+use crate::download::cover::fetch_cover_bytes;
 use crate::platforms::lyric::LyricData;
 use crate::platforms::Platform;
 
@@ -27,6 +29,7 @@ pub async fn prepare_assets(
     context: &TaskContext,
     write_metadata: bool,
     download_lrc: bool,
+    cover_quality: CoverQuality,
 ) -> PostprocessAssets {
     let lyric = if write_metadata || download_lrc {
         let result = match context.platform {
@@ -58,12 +61,7 @@ pub async fn prepare_assets(
     }
 
     let cover_bytes = if write_metadata && !cover_url.is_empty() {
-        match crate::platforms::CLIENT.get(&cover_url).send().await {
-            Ok(response) if response.status().is_success() => {
-                response.bytes().await.ok().map(|bytes| bytes.to_vec())
-            }
-            _ => None,
-        }
+        fetch_cover_bytes(context.platform, &cover_url, cover_quality).await
     } else {
         None
     };
