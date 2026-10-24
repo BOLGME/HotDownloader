@@ -75,7 +75,12 @@
 
         <!-- 问题反馈入口 -->
         <div class="feedback-entry">
-            <n-button tag="a" :href="feedbackUrl" target="_blank" rel="noopener noreferrer">
+            <n-button
+                tag="a"
+                :href="feedbackUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 问题反馈
             </n-button>
         </div>
