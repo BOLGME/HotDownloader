@@ -70,7 +70,11 @@
                 </button>
             </div>
 
-            <div v-if="method === 'qr'" class="qr-layout">
+            <div
+                v-if="method === 'qr'"
+                class="qr-layout"
+                :class="{ 'has-qr': qrImage, 'is-loading': busy }"
+            >
                 <div class="qr-frame" :aria-busy="busy">
                     <n-spin v-if="busy" size="medium" />
                     <template v-else-if="qrImage">
@@ -109,15 +113,19 @@
                     </div>
                 </div>
                 <div class="qr-instructions">
-                    <span class="method-eyebrow">手机扫码 · 推荐</span>
-                    <h3>连接你的{{ platform.name }}账号</h3>
-                    <p>{{ platform.description }}</p>
-                    <p class="qr-status" role="status" aria-live="polite">
-                        {{ qrMessage }}
-                    </p>
-                    <n-button type="primary" :loading="busy" @click="getQr">
-                        {{ qrImage ? '刷新二维码' : '获取二维码' }}
-                    </n-button>
+                    <div class="qr-intro">
+                        <span class="method-eyebrow">手机扫码 · 推荐</span>
+                        <h3>登录 {{ platform.name }}</h3>
+                        <p>{{ platform.description }}</p>
+                    </div>
+                    <div class="qr-controls">
+                        <p class="qr-status" role="status" aria-live="polite">
+                            {{ qrMessage }}
+                        </p>
+                        <n-button type="primary" :loading="busy" @click="getQr">
+                            {{ qrImage ? '刷新二维码' : '获取二维码' }}
+                        </n-button>
+                    </div>
                 </div>
             </div>
 
@@ -154,9 +162,7 @@
                 >
             </n-form>
         </template>
-        <p class="credential-note">
-            登录凭据由当前应用或服务保存，各平台账号独立管理。
-        </p>
+        <p class="credential-note">各平台账号独立管理。</p>
     </div>
 </template>
 
@@ -477,18 +483,81 @@ h3 {
     gap: 8px;
     flex-wrap: wrap;
 }
-@media (max-width: 540px) {
+@media (max-width: 600px) {
     .qr-layout {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        padding: 0;
+    }
+    .qr-instructions {
+        display: contents;
+    }
+    .qr-intro {
+        order: 0;
+    }
+    .method-eyebrow {
+        display: none;
+    }
+    .qr-intro h3 {
+        font-size: 15px;
+        margin: 0 0 4px;
+    }
+    .qr-frame {
+        order: 1;
+        justify-self: center;
+        max-width: 100%;
+    }
+    .qr-layout:not(.has-qr):not(.is-loading) .qr-frame {
+        display: none;
+    }
+    .qr-controls {
+        order: 2;
+        min-width: 0;
+    }
+    .qr-instructions .qr-status {
+        margin: 0 0 12px;
+    }
+    .qr-controls :deep(.n-button),
+    .manual-form > :deep(.n-button) {
+        width: 100%;
     }
     .login-method {
         max-width: none;
+        margin-bottom: 16px;
+    }
+    .login-method button {
+        min-height: 36px;
+    }
+    .loading-state {
+        min-height: 160px;
+    }
+    .credential-note {
+        margin-top: 16px;
+        padding-top: 12px;
+    }
+    .manual-hint {
+        margin-bottom: 16px;
+    }
+    .account-summary {
+        gap: 12px;
+        padding: 8px 0;
+    }
+    .account-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        font-size: 20px;
+    }
+    .account-identity {
+        min-width: 0;
     }
     .account-actions {
         width: 100%;
         padding-top: 8px;
+    }
+    .account-actions :deep(.n-button) {
+        flex: 1;
     }
 }
 </style>

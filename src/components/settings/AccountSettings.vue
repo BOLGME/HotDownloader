@@ -1,14 +1,12 @@
 <template>
     <section class="account-settings" aria-labelledby="account-settings-title">
         <header class="account-header">
-            <div>
-                <h2 id="account-settings-title">音乐账号</h2>
-                <p>连接音乐平台，让播放与下载使用你的账号。</p>
-            </div>
+            <h2 id="account-settings-title">音乐账号</h2>
             <span class="account-count"
                 >{{ connectedCount }} /
                 {{ LOGIN_PLATFORMS.length }} 已登录</span
             >
+            <p>管理各平台的播放与下载账号</p>
         </header>
 
         <div class="platform-grid" role="group" aria-label="选择音乐平台">
@@ -30,7 +28,14 @@
                     >{{ platform.mark }}</span
                 >
                 <span class="platform-info">
-                    <span class="platform-name">{{ platform.name }}</span>
+                    <span class="platform-name">
+                        <span class="platform-full-name">{{
+                            platform.name
+                        }}</span>
+                        <span class="platform-compact-name">{{
+                            platform.compactName
+                        }}</span>
+                    </span>
                     <span
                         class="platform-status"
                         :class="{
@@ -105,18 +110,19 @@ watch(
     min-width: 0;
 }
 .account-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 12px;
     margin-bottom: 24px;
 }
 .account-header h2 {
     font-size: 18px;
     font-weight: 650;
-    margin-bottom: 6px;
+    margin: 0;
 }
 .account-header p {
+    grid-column: 1 / -1;
     font-size: 13px;
     color: var(--color-text-secondary);
     line-height: 1.7;
@@ -186,6 +192,9 @@ watch(
     font-weight: 600;
     font-size: 14px;
 }
+.platform-compact-name {
+    display: none;
+}
 .platform-status {
     display: flex;
     align-items: center;
@@ -204,24 +213,55 @@ watch(
 }
 @media (max-width: 600px) {
     .account-settings {
-        padding: 20px 16px;
+        padding: 16px 12px;
+        margin-bottom: 16px;
     }
     .account-header {
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
+    }
+    .account-header h2 {
+        font-size: 16px;
+    }
+    .account-count {
+        margin: 0;
+        padding: 3px 8px;
+        font-size: 11px;
     }
     .platform-grid {
-        gap: 8px;
+        gap: 6px;
+        margin-bottom: 16px;
     }
     .platform-card {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 12px 10px;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 4px;
+        text-align: center;
+    }
+    .platform-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        font-size: 18px;
+    }
+    .platform-info {
+        align-items: center;
+        gap: 4px;
     }
     .platform-name {
         font-size: 12px;
+        white-space: nowrap;
+    }
+    .platform-full-name {
+        display: none;
+    }
+    .platform-compact-name {
+        display: inline;
+    }
+    .platform-status {
+        gap: 4px;
+        font-size: 11px;
+        white-space: nowrap;
     }
 }
 </style>

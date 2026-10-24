@@ -11,6 +11,7 @@ export interface LoginField {
 export interface LoginPlatformConfig {
     key: LoginPlatform
     name: string
+    compactName: string
     mark: string
     color: string
     description: string
@@ -22,6 +23,7 @@ export const LOGIN_PLATFORMS: LoginPlatformConfig[] = [
     {
         key: 'qqmusic',
         name: 'QQ 音乐',
+        compactName: 'QQ 音乐',
         mark: 'Q',
         color: '#178366',
         description: '使用 QQ 音乐 App 扫码并确认登录',
@@ -48,6 +50,7 @@ export const LOGIN_PLATFORMS: LoginPlatformConfig[] = [
     {
         key: 'kugou',
         name: '酷狗音乐',
+        compactName: '酷狗音乐',
         mark: 'K',
         color: '#2878d0',
         description: '使用酷狗音乐 App 扫码并确认登录',
@@ -78,6 +81,7 @@ export const LOGIN_PLATFORMS: LoginPlatformConfig[] = [
     {
         key: 'netease',
         name: '网易云音乐',
+        compactName: '网易云',
         mark: 'N',
         color: '#c84c4c',
         description: '使用网易云音乐 App 扫码并确认登录',

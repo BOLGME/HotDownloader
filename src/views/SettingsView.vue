@@ -235,6 +235,19 @@ function goAbout() {
 }
 
 @media (max-width: 767px) {
+    .settings-header {
+        margin-bottom: 16px;
+    }
+
+    .settings-header h1 {
+        font-size: 22px;
+        margin-bottom: 4px;
+    }
+
+    .settings-header p {
+        font-size: 13px;
+    }
+
     .settings-section,
     .settings-section + .settings-section {
         padding: 16px 12px;
