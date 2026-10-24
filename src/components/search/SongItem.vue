@@ -139,7 +139,7 @@ async function loadCoverIfNeeded() {
         return
     }
     // 酷我场景下按需加载
-    if (!props.song.id) return
+    if (props.song.platform !== 'kuwo' || !props.song.id) return
     coverLoading.value = true
     try {
         const url = await fetchCover('kuwo', props.song.id)

@@ -23,6 +23,9 @@ pub async fn search_songs(
         Platform::Kuwo => {
             platforms::kuwo::search::search_songs(&separator, keyword, page, limit).await
         }
+        Platform::Kugou => {
+            platforms::kugou::search::search_songs(&separator, keyword, page, limit).await
+        }
     }
 }
 
@@ -36,6 +39,7 @@ pub async fn fetch_cover(platform: String, song_id: u64) -> Result<String, Strin
     match p {
         Platform::QqMusic => Err("QQ 音乐封面已包含在搜索结果中，无需单独获取".into()),
         Platform::Kuwo => platforms::kuwo::cover::fetch_cover(song_id).await,
+        Platform::Kugou => Err("酷狗封面已包含在搜索结果中，无需单独获取".into()),
     }
 }
 
@@ -58,6 +62,9 @@ pub async fn search_albums(
         Platform::Kuwo => {
             platforms::kuwo::search::search_albums(&separator, keyword, page, limit).await
         }
+        Platform::Kugou => {
+            platforms::kugou::search::search_albums(&separator, keyword, page, limit).await
+        }
     }
 }
 
@@ -71,6 +78,7 @@ pub async fn fetch_album_songs(
     match platform.parse::<Platform>()? {
         Platform::QqMusic => platforms::qqmusic::album::fetch_album_songs(&separator, id).await,
         Platform::Kuwo => platforms::kuwo::album::fetch_album_songs(&separator, id).await,
+        Platform::Kugou => platforms::kugou::album::fetch_album_songs(&separator, id).await,
     }
 }
 
@@ -85,6 +93,7 @@ pub async fn search_artists(
     match platform.parse::<Platform>()? {
         Platform::QqMusic => platforms::qqmusic::search::search_artists(keyword, page, limit).await,
         Platform::Kuwo => platforms::kuwo::search::search_artists(keyword, page, limit).await,
+        Platform::Kugou => platforms::kugou::search::search_artists(keyword, page, limit).await,
     }
 }
 
@@ -105,6 +114,9 @@ pub async fn fetch_artist_songs(
         Platform::Kuwo => {
             platforms::kuwo::artist::fetch_artist_songs(&separator, id, page, limit).await
         }
+        Platform::Kugou => {
+            platforms::kugou::artist::fetch_artist_songs(&separator, id, page, limit).await
+        }
     }
 }
 
@@ -124,6 +136,9 @@ pub async fn fetch_artist_albums(
         }
         Platform::Kuwo => {
             platforms::kuwo::artist::fetch_artist_albums(&separator, id, page, limit).await
+        }
+        Platform::Kugou => {
+            platforms::kugou::artist::fetch_artist_albums(&separator, id, page, limit).await
         }
     }
 }

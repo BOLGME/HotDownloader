@@ -19,6 +19,9 @@ pub async fn fetch_playlist_songs(
             platforms::qqmusic::playlist::fetch_playlist_songs(&separator, input).await
         }
         Platform::Kuwo => platforms::kuwo::playlist::fetch_playlist_songs(&separator, input).await,
+        Platform::Kugou => {
+            platforms::kugou::playlist::fetch_playlist_songs(&separator, input).await
+        }
     }
 }
 
@@ -39,6 +42,7 @@ pub async fn search_playlists(
             platforms::qqmusic::playlist::search_playlists(keyword, page, limit).await
         }
         Platform::Kuwo => platforms::kuwo::playlist::search_playlists(keyword, page, limit).await,
+        Platform::Kugou => platforms::kugou::playlist::search_playlists(keyword, page, limit).await,
     }
 }
 

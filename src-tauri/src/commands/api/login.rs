@@ -2,7 +2,33 @@
 
 use hotdownloader_core::platforms::Platform;
 use serde::Deserialize;
+use tauri::Manager;
 use tauri::{command, AppHandle};
+
+pub(crate) fn kugou_store(
+    app: &AppHandle,
+) -> Result<hotdownloader_core::platforms::kugou::login::Store, String> {
+    let directory = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    Ok(hotdownloader_core::platforms::kugou::login::Store::new(
+        directory.join("kugou-credentials.json"),
+    ))
+}
+
+#[command]
+pub async fn kugou_login(
+    app: AppHandle,
+    action: String,
+    id: Option<String>,
+    credentials: Option<hotdownloader_core::platforms::kugou::login::ManualCredentials>,
+) -> Result<serde_json::Value, String> {
+    hotdownloader_core::platforms::kugou::login::execute(
+        &kugou_store(&app)?,
+        &action,
+        id.as_deref().unwrap_or(""),
+        credentials,
+    )
+    .await
+}
 
 /// 平台暂未实现登录功能时返回的统一错误消息
 const UNSUPPORTED_LOGIN: &str = "该平台暂不支持登录";
@@ -24,7 +50,7 @@ pub async fn create_qr_login(app: AppHandle, platform: String) -> Result<String,
     let p = platform.parse::<Platform>()?;
     match p {
         Platform::QqMusic => crate::platforms::qqmusic::login::create_qr_login(app).await,
-        Platform::Kuwo => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 
@@ -33,7 +59,7 @@ pub async fn check_qr_login(platform: String, qrcode_id: String) -> Result<Strin
     let p = platform.parse::<Platform>()?;
     match p {
         Platform::QqMusic => crate::platforms::qqmusic::login::check_qr_login(qrcode_id).await,
-        Platform::Kuwo => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 
@@ -57,7 +83,7 @@ pub async fn login_with_uin_authst(
             )
             .await
         }
-        Platform::Kuwo => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 
@@ -66,7 +92,7 @@ pub async fn logout(app: AppHandle, platform: String) -> Result<(), String> {
     let p = platform.parse::<Platform>()?;
     match p {
         Platform::QqMusic => crate::platforms::qqmusic::login::logout(app).await,
-        Platform::Kuwo => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 
@@ -75,7 +101,7 @@ pub async fn get_login_status(app: AppHandle, platform: String) -> Result<String
     let p = platform.parse::<Platform>()?;
     match p {
         Platform::QqMusic => crate::platforms::qqmusic::login::get_login_status(app).await,
-        Platform::Kuwo => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 

@@ -178,13 +178,19 @@ export async function checkForUpdate(): Promise<UpdateInfo> {
 export async function getLyricBySongId(
     platform: string,
     songId: number,
+    songMid?: string,
 ): Promise<LyricResponse> {
     if (!native) {
-        return musicCall('get_lyric_by_id', 'lyrics', { platform, songId })
+        return musicCall('get_lyric_by_id', 'lyrics', {
+            platform,
+            songId,
+            songMid,
+        })
     }
     return invoke<LyricResponse>('get_lyric_by_id', {
         platform,
         songId,
+        songMid,
     })
 }
 

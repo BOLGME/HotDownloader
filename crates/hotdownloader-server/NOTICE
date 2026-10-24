@@ -111,6 +111,7 @@ Rust:
   potential_utf                                        0.1.6                          Unicode-3.0
   ppv-lite86                                           0.2.21                         MIT OR Apache-2.0
   proc-macro2                                          1.0.107                        MIT OR Apache-2.0
+  qrcode                                               0.14.1                         MIT OR Apache-2.0
   quinn                                                0.11.12                        MIT OR Apache-2.0
   quinn-proto                                          0.11.19                        MIT OR Apache-2.0
   quinn-udp                                            0.5.16                         MIT OR Apache-2.0

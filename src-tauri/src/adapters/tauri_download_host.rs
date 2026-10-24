@@ -158,6 +158,7 @@ impl DownloadConfigProvider for TauriDownloadConfigProvider {
 /// 桌面端只提供当前 QQ 凭据；平台选择和链接 HTTP 请求统一位于共享核心。
 pub struct TauriDownloadLinkProvider {
     provider: PlatformDownloadLinkProvider,
+    app: AppHandle,
 }
 
 struct TauriQqCredentialSource {
@@ -166,9 +167,10 @@ struct TauriQqCredentialSource {
 
 impl TauriDownloadLinkProvider {
     pub fn new(app: AppHandle) -> Self {
-        let credentials = Arc::new(TauriQqCredentialSource { app });
+        let credentials = Arc::new(TauriQqCredentialSource { app: app.clone() });
         Self {
             provider: PlatformDownloadLinkProvider::new(credentials),
+            app,
         }
     }
 }
@@ -197,6 +199,22 @@ impl DownloadLinkProvider for TauriDownloadLinkProvider {
         song_mid: &'a str,
         filename: &'a str,
     ) -> BoxFuture<'a, Result<(String, String), String>> {
+        if platform == Platform::Kugou {
+            return Box::pin(async move {
+                let store = crate::commands::api::login::kugou_store(&self.app)?;
+                let params = store.request_params()?;
+                hotdownloader_core::platforms::kugou::link::get_download_link_with_credentials(
+                    &reqwest::Client::builder()
+                        .timeout(std::time::Duration::from_secs(30))
+                        .build()
+                        .map_err(|e| e.to_string())?,
+                    song_mid,
+                    filename,
+                    params,
+                )
+                .await
+            });
+        }
         self.provider.fetch(platform, song_mid, filename)
     }
 }

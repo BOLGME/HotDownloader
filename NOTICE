@@ -311,6 +311,7 @@ Rust:
   proc-macro-error                                     1.0.4                          MIT OR Apache-2.0
   proc-macro-error-attr                                1.0.4                          MIT OR Apache-2.0
   proc-macro2                                          1.0.107                        MIT OR Apache-2.0
+  qrcode                                               0.14.1                         MIT OR Apache-2.0
   quick-xml                                            0.42.0                         MIT
   quinn                                                0.11.12                        MIT OR Apache-2.0
   quinn-proto                                          0.11.19                        MIT OR Apache-2.0

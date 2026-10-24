@@ -38,7 +38,10 @@
         <div class="settings-section account-section">
             <h2 class="section-title">账号设置</h2>
             <n-form :label-placement="isNarrow ? 'top' : 'left'">
+                <h3>QQ 音乐</h3>
                 <LoginSetting />
+                <h3>酷狗音乐</h3>
+                <KugouLoginSetting />
             </n-form>
         </div>
 
@@ -101,6 +104,7 @@ import WriteMetadataSetting from '../components/settings/WriteMetadataSetting.vu
 import CoverQualitySetting from '../components/settings/CoverQualitySetting.vue'
 import DownloadLrcSetting from '../components/settings/DownloadLrcSetting.vue'
 import LoginSetting from '../components/settings/LoginSetting.vue'
+import KugouLoginSetting from '../components/settings/KugouLoginSetting.vue'
 import DuplicateStrategySetting from '../components/settings/DuplicateStrategySetting.vue'
 import NotifySetting from '../components/settings/NotifySetting.vue'
 import UpdateChecker from '../components/settings/UpdateChecker.vue'

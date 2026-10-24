@@ -6,6 +6,7 @@ use rand::Rng;
 mod platform;
 pub use platform::Platform;
 
+pub mod kugou;
 pub mod kuwo;
 pub mod lyric;
 pub mod qqmusic;

@@ -20,6 +20,8 @@ pub struct MusicRequest {
     dirid: String,
     #[serde(default)]
     song_id: u64,
+    #[serde(default)]
+    song_mid: String,
     #[serde(default = "first_page")]
     page: u32,
     #[serde(default = "default_limit")]
@@ -63,15 +65,30 @@ pub async fn execute(
             )
             .await?
         }
+        (Platform::Kugou, "songs/search") => {
+            platforms::kugou::search::search_songs(
+                artist_separator,
+                request.keyword,
+                request.page,
+                request.limit,
+            )
+            .await?
+        }
         (Platform::QqMusic, "hot-keywords") => {
             platforms::qqmusic::suggest::fetch_hot_keywords().await?
         }
         (Platform::Kuwo, "hot-keywords") => platforms::kuwo::suggest::fetch_hot_keywords().await?,
+        (Platform::Kugou, "hot-keywords") => {
+            platforms::kugou::suggest::fetch_hot_keywords().await?
+        }
         (Platform::QqMusic, "suggestions") => {
             platforms::qqmusic::suggest::fetch_suggestions(request.keyword).await?
         }
         (Platform::Kuwo, "suggestions") => {
             platforms::kuwo::suggest::fetch_suggestions(request.keyword).await?
+        }
+        (Platform::Kugou, "suggestions") => {
+            platforms::kugou::suggest::fetch_suggestions(request.keyword).await?
         }
         (Platform::QqMusic, "playlists/fetch") => {
             platforms::qqmusic::playlist::fetch_playlist_songs(artist_separator, request.input)
@@ -93,6 +110,10 @@ pub async fn execute(
         (Platform::Kuwo, "playlists/fetch") => {
             platforms::kuwo::playlist::fetch_playlist_songs(artist_separator, request.input).await?
         }
+        (Platform::Kugou, "playlists/fetch") => {
+            platforms::kugou::playlist::fetch_playlist_songs(artist_separator, request.input)
+                .await?
+        }
         (Platform::QqMusic, "playlists/search") => {
             platforms::qqmusic::playlist::search_playlists(
                 request.keyword,
@@ -103,6 +124,14 @@ pub async fn execute(
         }
         (Platform::Kuwo, "playlists/search") => {
             platforms::kuwo::playlist::search_playlists(
+                request.keyword,
+                request.page,
+                request.limit,
+            )
+            .await?
+        }
+        (Platform::Kugou, "playlists/search") => {
+            platforms::kugou::playlist::search_playlists(
                 request.keyword,
                 request.page,
                 request.limit,
@@ -127,11 +156,23 @@ pub async fn execute(
             )
             .await?
         }
+        (Platform::Kugou, "albums/search") => {
+            platforms::kugou::search::search_albums(
+                artist_separator,
+                request.keyword,
+                request.page,
+                request.limit,
+            )
+            .await?
+        }
         (Platform::QqMusic, "albums/fetch") => {
             platforms::qqmusic::album::fetch_album_songs(artist_separator, request.id).await?
         }
         (Platform::Kuwo, "albums/fetch") => {
             platforms::kuwo::album::fetch_album_songs(artist_separator, request.id).await?
+        }
+        (Platform::Kugou, "albums/fetch") => {
+            platforms::kugou::album::fetch_album_songs(artist_separator, request.id).await?
         }
         (Platform::QqMusic, "artists/search") => {
             platforms::qqmusic::search::search_artists(request.keyword, request.page, request.limit)
@@ -139,6 +180,10 @@ pub async fn execute(
         }
         (Platform::Kuwo, "artists/search") => {
             platforms::kuwo::search::search_artists(request.keyword, request.page, request.limit)
+                .await?
+        }
+        (Platform::Kugou, "artists/search") => {
+            platforms::kugou::search::search_artists(request.keyword, request.page, request.limit)
                 .await?
         }
         (Platform::QqMusic, "artists/songs") => {
@@ -152,6 +197,15 @@ pub async fn execute(
         }
         (Platform::Kuwo, "artists/songs") => {
             platforms::kuwo::artist::fetch_artist_songs(
+                artist_separator,
+                request.id,
+                request.page,
+                request.limit,
+            )
+            .await?
+        }
+        (Platform::Kugou, "artists/songs") => {
+            platforms::kugou::artist::fetch_artist_songs(
                 artist_separator,
                 request.id,
                 request.page,
@@ -177,11 +231,21 @@ pub async fn execute(
             )
             .await?
         }
+        (Platform::Kugou, "artists/albums") => {
+            platforms::kugou::artist::fetch_artist_albums(
+                artist_separator,
+                request.id,
+                request.page,
+                request.limit,
+            )
+            .await?
+        }
         (Platform::Kuwo, "cover") => {
             return Ok(Value::String(
                 platforms::kuwo::cover::fetch_cover(request.song_id).await?,
             ));
         }
+        (Platform::Kugou, "cover") => return Err("酷狗封面已包含在搜索结果中，无需单独获取".into()),
         (Platform::QqMusic, "cover") => {
             return Err("QQ 音乐封面已包含在搜索结果中，无需单独获取".into());
         }
@@ -196,6 +260,12 @@ pub async fn execute(
                 platforms::kuwo::lyrics::get_lyric_by_id(request.song_id).await?,
             )
             .map_err(|error| error.to_string());
+        }
+        (Platform::Kugou, "lyrics") => {
+            return serde_json::to_value(
+                platforms::kugou::lyrics::get_lyric(&request.song_mid).await?,
+            )
+            .map_err(|e| e.to_string())
         }
         _ => return Err("未知音乐操作".into()),
     };

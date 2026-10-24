@@ -145,7 +145,7 @@ onMounted(() => {
     if (
         typeof query.id !== 'string' ||
         !query.id ||
-        !['qqmusic', 'kuwo'].includes(platform)
+        !['qqmusic', 'kuwo', 'kugou'].includes(platform)
     ) {
         routeError.value = '缺少有效的歌手信息，请返回搜索重新选择'
         return
