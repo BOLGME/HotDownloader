@@ -2864,7 +2864,12 @@ export const rustComponents: ComponentInfo[] = [
 export const frontendComponents: ComponentInfo[] = [
     {
         "name": "@babel/helper-string-parser",
-        "version": "7.29.7",
+        "version": "7.29.11",
+        "license": "MIT"
+    },
+    {
+        "name": "@babel/helper-string-parser",
+        "version": "8.0.8",
         "license": "MIT"
     },
     {
@@ -2873,13 +2878,28 @@ export const frontendComponents: ComponentInfo[] = [
         "license": "MIT"
     },
     {
+        "name": "@babel/helper-validator-identifier",
+        "version": "8.0.6",
+        "license": "MIT"
+    },
+    {
         "name": "@babel/parser",
-        "version": "7.29.9",
+        "version": "7.29.11",
+        "license": "MIT"
+    },
+    {
+        "name": "@babel/parser",
+        "version": "8.0.8",
         "license": "MIT"
     },
     {
         "name": "@babel/types",
-        "version": "7.29.8",
+        "version": "7.29.11",
+        "license": "MIT"
+    },
+    {
+        "name": "@babel/types",
+        "version": "8.0.8",
         "license": "MIT"
     },
     {
@@ -2934,12 +2954,12 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "@oxc-project/types",
-        "version": "0.152.0",
+        "version": "0.155.0",
         "license": "MIT"
     },
     {
         "name": "@rolldown/binding-win32-x64-msvc",
-        "version": "1.2.12",
+        "version": "1.2.15",
         "license": "MIT"
     },
     {
@@ -2954,12 +2974,12 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "@tauri-apps/api",
-        "version": "2.12.1",
+        "version": "2.12.4",
         "license": "Apache-2.0 OR MIT"
     },
     {
         "name": "@tauri-apps/plugin-dialog",
-        "version": "2.8.1",
+        "version": "2.8.3",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -2973,8 +2993,13 @@ export const frontendComponents: ComponentInfo[] = [
         "license": "MIT OR Apache-2.0"
     },
     {
+        "name": "@types/estree",
+        "version": "1.0.9",
+        "license": "MIT"
+    },
+    {
         "name": "@types/lodash",
-        "version": "4.17.25",
+        "version": "4.17.27",
         "license": "MIT"
     },
     {
@@ -2984,7 +3009,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "@types/node",
-        "version": "24.19.1",
+        "version": "24.19.2",
         "license": "MIT"
     },
     {
@@ -2999,22 +3024,22 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "@vue/compiler-core",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "@vue/compiler-dom",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "@vue/compiler-sfc",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "@vue/compiler-ssr",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
@@ -3034,32 +3059,32 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "@vue/reactivity",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "@vue/runtime-core",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "@vue/runtime-dom",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "@vue/server-renderer",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "@vue/shared",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "acorn",
-        "version": "8.18.0",
+        "version": "8.19.0",
         "license": "MIT"
     },
     {
@@ -3068,8 +3093,13 @@ export const frontendComponents: ComponentInfo[] = [
         "license": "MIT"
     },
     {
+        "name": "ast-kit",
+        "version": "3.0.0",
+        "license": "MIT"
+    },
+    {
         "name": "ast-walker-scope",
-        "version": "0.9.0",
+        "version": "0.10.0",
         "license": "MIT"
     },
     {
@@ -3104,17 +3134,12 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "confbox",
-        "version": "0.2.4",
-        "license": "MIT"
-    },
-    {
-        "name": "confbox",
         "version": "0.3.1",
         "license": "MIT"
     },
     {
         "name": "core-js",
-        "version": "3.50.0",
+        "version": "3.51.0",
         "license": "MIT"
     },
     {
@@ -3149,7 +3174,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "dompurify",
-        "version": "3.4.16",
+        "version": "3.4.17",
         "license": "(MPL-2.0 OR Apache-2.0)"
     },
     {
@@ -3163,13 +3188,18 @@ export const frontendComponents: ComponentInfo[] = [
         "license": "MIT"
     },
     {
+        "name": "estree-walker",
+        "version": "3.0.3",
+        "license": "MIT"
+    },
+    {
         "name": "evtd",
         "version": "0.2.4",
         "license": "MIT"
     },
     {
         "name": "exsolve",
-        "version": "1.1.1",
+        "version": "1.1.3",
         "license": "MIT"
     },
     {
@@ -3218,13 +3248,18 @@ export const frontendComponents: ComponentInfo[] = [
         "license": "MIT"
     },
     {
+        "name": "magic-string",
+        "version": "1.4.3",
+        "license": "MIT"
+    },
+    {
         "name": "magic-string-ast",
         "version": "1.0.3",
         "license": "MIT"
     },
     {
         "name": "marked",
-        "version": "18.0.14",
+        "version": "18.1.1",
         "license": "MIT"
     },
     {
@@ -3244,7 +3279,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "nanoid",
-        "version": "3.3.19",
+        "version": "3.3.20",
         "license": "MIT"
     },
     {
@@ -3274,7 +3309,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "pinia",
-        "version": "4.0.3",
+        "version": "4.1.0",
         "license": "MIT"
     },
     {
@@ -3284,12 +3319,12 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "pkg-types",
-        "version": "2.3.3",
+        "version": "2.4.0",
         "license": "MIT"
     },
     {
         "name": "postcss",
-        "version": "8.5.28",
+        "version": "8.5.31",
         "license": "MIT"
     },
     {
@@ -3309,7 +3344,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "rolldown",
-        "version": "1.2.12",
+        "version": "1.2.15",
         "license": "MIT"
     },
     {
@@ -3389,7 +3424,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "vite",
-        "version": "8.3.2",
+        "version": "8.3.5",
         "license": "MIT"
     },
     {
@@ -3399,12 +3434,12 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "vue",
-        "version": "3.5.43",
+        "version": "3.5.44",
         "license": "MIT"
     },
     {
         "name": "vue-router",
-        "version": "5.3.1",
+        "version": "5.4.0",
         "license": "MIT"
     },
     {
