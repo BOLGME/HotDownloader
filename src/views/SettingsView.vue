@@ -73,6 +73,13 @@
         <!-- 检查更新组件 -->
         <UpdateChecker v-if="native" />
 
+        <!-- 问题反馈入口 -->
+        <div class="feedback-entry">
+            <n-button tag="a" :href="feedbackUrl" target="_blank" rel="noopener noreferrer">
+                问题反馈
+            </n-button>
+        </div>
+
         <!-- 关于入口（始终位于页面底部） -->
         <div class="about-entry">
             <n-button text @click="goAbout">关于 HotDownloader</n-button>
@@ -132,6 +139,9 @@ const settingLabels: Partial<Record<keyof Settings, string>> = {
 function settingLabel(field: keyof Settings): string {
     return settingLabels[field] ?? field
 }
+
+// 问题反馈地址
+const feedbackUrl = 'https://github.com/lerdb/HotDownloader/issues'
 
 function goAbout() {
     router.push('/settings/about')
@@ -199,6 +209,16 @@ function goAbout() {
     font-weight: 600;
     margin-bottom: 12px;
     color: var(--color-text);
+}
+
+/* 问题反馈入口：保持居中布局 */
+.feedback-entry {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 24px;
 }
 
 .about-entry {
