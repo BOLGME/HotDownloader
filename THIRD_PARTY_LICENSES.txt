@@ -10,6 +10,7 @@ Rust Components
 Component                                            Version                        License
 ------------------------------------------------------------------------------------------------------------------
 adler2                                               2.0.1                          0BSD OR MIT OR Apache-2.0
+aes                                                  0.8.4                          MIT OR Apache-2.0
 aho-corasick                                         1.1.5                          Unlicense OR MIT
 alloc-no-stdlib                                      3.0.0                          BSD-3-Clause
 alloc-stdlib                                         0.3.0                          BSD-3-Clause
@@ -66,6 +67,7 @@ cfg-expr                                             0.15.8                     
 cfg-if                                               1.0.5                          MIT OR Apache-2.0
 chacha20                                             0.10.2                         MIT OR Apache-2.0
 chrono                                               0.4.45                         MIT OR Apache-2.0
+cipher                                               0.4.4                          MIT OR Apache-2.0
 cmake                                                0.1.58                         MIT OR Apache-2.0
 combine                                              4.6.8                          MIT
 compression-codecs                                   0.4.45                         MIT OR Apache-2.0
@@ -200,6 +202,7 @@ idna_adapter                                         1.2.2                      
 indexmap                                             1.9.3                          Apache-2.0 OR MIT
 indexmap                                             2.14.2                         Apache-2.0 OR MIT
 infer                                                0.22.0                         MIT
+inout                                                0.1.4                          MIT OR Apache-2.0
 ipnet                                                2.12.2                         MIT OR Apache-2.0
 is-docker                                            0.2.0                          MIT
 is-wsl                                               0.4.0                          MIT
@@ -255,7 +258,9 @@ notify-rust                                          4.18.1                     
 num_enum                                             0.7.6                          BSD-3-Clause OR MIT OR Apache-2.0
 num_enum_derive                                      0.7.6                          BSD-3-Clause OR MIT OR Apache-2.0
 num_threads                                          0.1.7                          MIT OR Apache-2.0
+num-bigint                                           0.4.8                          MIT OR Apache-2.0
 num-conv                                             0.2.2                          MIT OR Apache-2.0
+num-integer                                          0.1.47                         MIT OR Apache-2.0
 num-traits                                           0.2.19                         MIT OR Apache-2.0
 objc2                                                0.6.4                          MIT
 objc2-app-kit                                        0.3.2                          Zlib OR Apache-2.0 OR MIT

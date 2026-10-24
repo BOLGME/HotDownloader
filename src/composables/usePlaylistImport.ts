@@ -90,8 +90,14 @@ export function usePlaylistImport() {
         await loadPlaylist(() => musicApi.fetchPlaylistSongs(platform, value))
     }
 
-    async function loadCreatedPlaylist(id: string, dirid: string) {
-        await loadPlaylist(() => musicApi.fetchCreatedPlaylistSongs(id, dirid))
+    async function loadCreatedPlaylist(
+        id: string,
+        dirid: string,
+        platform = 'qqmusic',
+    ) {
+        await loadPlaylist(() =>
+            musicApi.fetchCreatedPlaylistSongs(id, dirid, platform),
+        )
     }
 
     /**

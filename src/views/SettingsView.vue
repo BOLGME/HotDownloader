@@ -42,6 +42,8 @@
                 <LoginSetting />
                 <h3>酷狗音乐</h3>
                 <KugouLoginSetting />
+                <h3>网易云音乐</h3>
+                <NeteaseLoginSetting />
             </n-form>
         </div>
 
@@ -105,6 +107,7 @@ import CoverQualitySetting from '../components/settings/CoverQualitySetting.vue'
 import DownloadLrcSetting from '../components/settings/DownloadLrcSetting.vue'
 import LoginSetting from '../components/settings/LoginSetting.vue'
 import KugouLoginSetting from '../components/settings/KugouLoginSetting.vue'
+import NeteaseLoginSetting from '../components/settings/NeteaseLoginSetting.vue'
 import DuplicateStrategySetting from '../components/settings/DuplicateStrategySetting.vue'
 import NotifySetting from '../components/settings/NotifySetting.vue'
 import UpdateChecker from '../components/settings/UpdateChecker.vue'

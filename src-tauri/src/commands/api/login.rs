@@ -1,9 +1,34 @@
 //! 登录相关命令路由层
 
-use hotdownloader_core::platforms::Platform;
+use hotdownloader_core::platforms::{netease, Platform};
 use serde::Deserialize;
 use tauri::Manager;
 use tauri::{command, AppHandle};
+
+pub(crate) fn netease_store(app: &AppHandle) -> Result<netease::login::Store, String> {
+    Ok(netease::login::Store::new(
+        app.path()
+            .app_data_dir()
+            .map_err(|e| e.to_string())?
+            .join("netease-credentials.json"),
+    ))
+}
+
+#[command]
+pub async fn netease_login(
+    app: AppHandle,
+    action: String,
+    id: Option<String>,
+    credentials: Option<netease::login::ManualCredentials>,
+) -> Result<serde_json::Value, String> {
+    netease::login::execute(
+        &netease_store(&app)?,
+        &action,
+        id.as_deref().unwrap_or(""),
+        credentials,
+    )
+    .await
+}
 
 pub(crate) fn kugou_store(
     app: &AppHandle,
@@ -50,7 +75,7 @@ pub async fn create_qr_login(app: AppHandle, platform: String) -> Result<String,
     let p = platform.parse::<Platform>()?;
     match p {
         Platform::QqMusic => crate::platforms::qqmusic::login::create_qr_login(app).await,
-        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou | Platform::Netease => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 
@@ -59,7 +84,7 @@ pub async fn check_qr_login(platform: String, qrcode_id: String) -> Result<Strin
     let p = platform.parse::<Platform>()?;
     match p {
         Platform::QqMusic => crate::platforms::qqmusic::login::check_qr_login(qrcode_id).await,
-        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou | Platform::Netease => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 
@@ -83,7 +108,7 @@ pub async fn login_with_uin_authst(
             )
             .await
         }
-        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou | Platform::Netease => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 
@@ -92,7 +117,7 @@ pub async fn logout(app: AppHandle, platform: String) -> Result<(), String> {
     let p = platform.parse::<Platform>()?;
     match p {
         Platform::QqMusic => crate::platforms::qqmusic::login::logout(app).await,
-        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou | Platform::Netease => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 
@@ -101,7 +126,7 @@ pub async fn get_login_status(app: AppHandle, platform: String) -> Result<String
     let p = platform.parse::<Platform>()?;
     match p {
         Platform::QqMusic => crate::platforms::qqmusic::login::get_login_status(app).await,
-        Platform::Kuwo | Platform::Kugou => Err(UNSUPPORTED_LOGIN.into()),
+        Platform::Kuwo | Platform::Kugou | Platform::Netease => Err(UNSUPPORTED_LOGIN.into()),
     }
 }
 

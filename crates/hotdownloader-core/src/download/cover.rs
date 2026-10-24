@@ -20,7 +20,24 @@ fn candidate_urls(platform: Platform, source: &str, quality: CoverQuality) -> Ve
     let mut candidates = Vec::new();
     if quality != CoverQuality::Source {
         if let Ok(mut url) = Url::parse(source) {
-            let host = url.host_str().unwrap_or("");
+            let host = url.host_str().unwrap_or("").to_string();
+            if platform == Platform::Netease
+                && (host == "music.126.net" || host.ends_with(".music.126.net"))
+            {
+                let pairs: Vec<_> = url
+                    .query_pairs()
+                    .filter(|(key, _)| key != "param")
+                    .map(|(key, value)| (key.into_owned(), value.into_owned()))
+                    .collect();
+                url.set_query(None);
+                if !pairs.is_empty() {
+                    url.query_pairs_mut().extend_pairs(pairs);
+                }
+                if quality == CoverQuality::High {
+                    url.query_pairs_mut().append_pair("param", "500y500");
+                }
+                candidates.push(url.to_string());
+            }
             let sizes: &[&str] = match quality {
                 CoverQuality::Original => &["", "800", "500"],
                 CoverQuality::High => &["500"],
@@ -112,6 +129,19 @@ pub(super) async fn fetch_cover_bytes(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn netease_cover_sizes_keep_the_source_as_fallback() {
+        let source = "https://p1.music.126.net/cover.jpg?param=200y200";
+        assert_eq!(
+            candidate_urls(Platform::Netease, source, CoverQuality::Original),
+            ["https://p1.music.126.net/cover.jpg", source]
+        );
+        assert_eq!(
+            candidate_urls(Platform::Netease, source, CoverQuality::High),
+            ["https://p1.music.126.net/cover.jpg?param=500y500", source]
+        );
+    }
 
     #[test]
     fn qq_original_uses_unscaled_artwork_then_supported_sizes() {

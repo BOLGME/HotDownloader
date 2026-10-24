@@ -23,6 +23,7 @@ pub struct PlatformDownloadLinkProvider {
     client: Client,
     qq_credentials: Arc<dyn QqCredentialSource>,
     kugou_store: Option<Arc<crate::platforms::kugou::login::Store>>,
+    netease_store: Option<Arc<crate::platforms::netease::login::Store>>,
 }
 
 impl PlatformDownloadLinkProvider {
@@ -32,6 +33,7 @@ impl PlatformDownloadLinkProvider {
             client,
             qq_credentials,
             kugou_store: None,
+            netease_store: None,
         }
     }
 
@@ -43,6 +45,7 @@ impl PlatformDownloadLinkProvider {
             client,
             qq_credentials,
             kugou_store: None,
+            netease_store: None,
         }
     }
 
@@ -52,11 +55,20 @@ impl PlatformDownloadLinkProvider {
             client,
             qq_credentials,
             kugou_store: None,
+            netease_store: None,
         }
     }
 
     pub fn with_kugou_store(mut self, store: Arc<crate::platforms::kugou::login::Store>) -> Self {
         self.kugou_store = Some(store);
+        self
+    }
+
+    pub fn with_netease_store(
+        mut self,
+        store: Arc<crate::platforms::netease::login::Store>,
+    ) -> Self {
+        self.netease_store = Some(store);
         self
     }
 }
@@ -79,6 +91,16 @@ impl DownloadLinkProvider for PlatformDownloadLinkProvider {
     ) -> BoxFuture<'a, Result<(String, String), String>> {
         Box::pin(async move {
             match platform {
+                Platform::Netease => {
+                    let cookie = self
+                        .netease_store
+                        .as_ref()
+                        .map(|s| s.cookie())
+                        .transpose()?
+                        .unwrap_or_default();
+                    crate::platforms::netease::link::get_download_link(song_mid, filename, &cookie)
+                        .await
+                }
                 Platform::Kugou => {
                     let params = self
                         .kugou_store

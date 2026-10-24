@@ -12,6 +12,7 @@ pub async fn get_lyric_by_id(
     song_mid: Option<String>,
 ) -> Result<LyricData, String> {
     match platform.parse::<Platform>()? {
+        Platform::Netease => platforms::netease::lyrics::get_lyric_by_id(song_id).await,
         Platform::Kugou => {
             platforms::kugou::lyrics::get_lyric(song_mid.as_deref().unwrap_or("")).await
         }

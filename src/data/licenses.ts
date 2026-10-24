@@ -20,6 +20,11 @@ export const rustComponents: ComponentInfo[] = [
         "license": "0BSD OR MIT OR Apache-2.0"
     },
     {
+        "name": "aes",
+        "version": "0.8.4",
+        "license": "MIT OR Apache-2.0"
+    },
+    {
         "name": "aho-corasick",
         "version": "1.1.5",
         "license": "Unlicense OR MIT"
@@ -297,6 +302,11 @@ export const rustComponents: ComponentInfo[] = [
     {
         "name": "chrono",
         "version": "0.4.45",
+        "license": "MIT OR Apache-2.0"
+    },
+    {
+        "name": "cipher",
+        "version": "0.4.4",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -970,6 +980,11 @@ export const rustComponents: ComponentInfo[] = [
         "license": "MIT"
     },
     {
+        "name": "inout",
+        "version": "0.1.4",
+        "license": "MIT OR Apache-2.0"
+    },
+    {
         "name": "ipnet",
         "version": "2.12.2",
         "license": "MIT OR Apache-2.0"
@@ -1245,8 +1260,18 @@ export const rustComponents: ComponentInfo[] = [
         "license": "MIT OR Apache-2.0"
     },
     {
+        "name": "num-bigint",
+        "version": "0.4.8",
+        "license": "MIT OR Apache-2.0"
+    },
+    {
         "name": "num-conv",
         "version": "0.2.2",
+        "license": "MIT OR Apache-2.0"
+    },
+    {
+        "name": "num-integer",
+        "version": "0.1.47",
         "license": "MIT OR Apache-2.0"
     },
     {

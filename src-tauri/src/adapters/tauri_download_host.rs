@@ -199,6 +199,15 @@ impl DownloadLinkProvider for TauriDownloadLinkProvider {
         song_mid: &'a str,
         filename: &'a str,
     ) -> BoxFuture<'a, Result<(String, String), String>> {
+        if platform == Platform::Netease {
+            return Box::pin(async move {
+                let cookie = crate::commands::api::login::netease_store(&self.app)?.cookie()?;
+                hotdownloader_core::platforms::netease::link::get_download_link(
+                    song_mid, filename, &cookie,
+                )
+                .await
+            });
+        }
         if platform == Platform::Kugou {
             return Box::pin(async move {
                 let store = crate::commands::api::login::kugou_store(&self.app)?;

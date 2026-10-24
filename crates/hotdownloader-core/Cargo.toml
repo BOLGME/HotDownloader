@@ -7,6 +7,8 @@ license = "Apache-2.0"
 description = "HotDownloader 共享下载核心，提供任务调度、文件操作和 HTTP 传输"
 
 [dependencies]
+aes = "0.8.4"
+num-bigint = "0.4.6"
 async-tungstenite = { version = "0.32.1", features = ["tokio-runtime", "tokio-rustls-webpki-roots"] }
 bytes = "1.12.1"
 futures-util = "0.3.33"

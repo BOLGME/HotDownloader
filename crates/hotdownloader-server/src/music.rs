@@ -41,12 +41,126 @@ pub async fn execute(
     request: MusicRequest,
     artist_separator: &str,
     login_store: &dyn LoginCredentialStore,
+    netease_store: &platforms::netease::login::Store,
 ) -> Result<Value, String> {
     let platform = request.platform.parse::<Platform>()?;
     if request.page == 0 || request.limit == 0 || request.limit > 100 {
         return Err("无效的分页参数".into());
     }
+    let netease_cookie = if platform == Platform::Netease {
+        netease_store.cookie()?
+    } else {
+        String::new()
+    };
     let result = match (platform, action) {
+        (Platform::Netease, "songs/search") => {
+            platforms::netease::search::search_songs(
+                artist_separator,
+                request.keyword,
+                request.page,
+                request.limit,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "albums/search") => {
+            platforms::netease::search::search_albums(
+                artist_separator,
+                request.keyword,
+                request.page,
+                request.limit,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "artists/search") => {
+            platforms::netease::search::search_artists(
+                request.keyword,
+                request.page,
+                request.limit,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "playlists/search") => {
+            platforms::netease::playlist::search_playlists(
+                request.keyword,
+                request.page,
+                request.limit,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "hot-keywords") => {
+            platforms::netease::suggest::fetch_hot_keywords(&netease_cookie).await?
+        }
+        (Platform::Netease, "suggestions") => {
+            platforms::netease::suggest::fetch_suggestions(
+                artist_separator,
+                request.keyword,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "playlists/fetch") => {
+            platforms::netease::playlist::fetch_playlist_songs(
+                artist_separator,
+                request.input,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "playlists/created") => {
+            platforms::netease::playlist::fetch_created_playlists(&netease_cookie).await?
+        }
+        (Platform::Netease, "playlists/created/fetch") => {
+            platforms::netease::playlist::fetch_playlist_songs(
+                artist_separator,
+                request.id,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "albums/fetch") => {
+            platforms::netease::album::fetch_album_songs(
+                artist_separator,
+                request.id,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "artists/songs") => {
+            platforms::netease::artist::fetch_artist_songs(
+                artist_separator,
+                request.id,
+                request.page,
+                request.limit,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "artists/albums") => {
+            platforms::netease::artist::fetch_artist_albums(
+                artist_separator,
+                request.id,
+                request.page,
+                request.limit,
+                &netease_cookie,
+            )
+            .await?
+        }
+        (Platform::Netease, "cover") => {
+            return platforms::netease::cover::fetch_cover(request.song_id, &netease_cookie)
+                .await
+                .map(Value::String)
+        }
+        (Platform::Netease, "lyrics") => {
+            return serde_json::to_value(
+                platforms::netease::lyrics::get_lyric_by_id(request.song_id).await?,
+            )
+            .map_err(|e| e.to_string());
+        }
+
         (Platform::QqMusic, "songs/search") => {
             platforms::qqmusic::search::search_songs(
                 artist_separator,

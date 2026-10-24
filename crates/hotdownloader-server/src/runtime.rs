@@ -317,6 +317,7 @@ pub struct ServerRuntime {
     pub environment: Arc<ServerEnvironment>,
     pub events: Arc<ServerEvents>,
     pub login_store: Arc<FileLoginStore>,
+    pub netease_store: Arc<hotdownloader_core::platforms::netease::login::Store>,
     pub kugou_store: Arc<hotdownloader_core::platforms::kugou::login::Store>,
     pub playback: crate::playback::PlaybackSessions,
     pub playback_links: Arc<PlatformDownloadLinkProvider>,
@@ -367,6 +368,9 @@ impl ServerRuntime {
             environment,
             events,
             login_store: Arc::new(FileLoginStore::new(data_dir.join("qq-credentials.json"))),
+            netease_store: Arc::new(hotdownloader_core::platforms::netease::login::Store::new(
+                data_dir.join("netease-credentials.json"),
+            )),
             kugou_store: Arc::new(hotdownloader_core::platforms::kugou::login::Store::new(
                 data_dir.join("kugou-credentials.json"),
             )),
@@ -402,6 +406,9 @@ impl ServerRuntime {
             tasks: tasks.clone(),
             events: events.clone(),
         });
+        let netease_store = Arc::new(hotdownloader_core::platforms::netease::login::Store::new(
+            data_dir.join("netease-credentials.json"),
+        ));
         let kugou_store = Arc::new(hotdownloader_core::platforms::kugou::login::Store::new(
             data_dir.join("kugou-credentials.json"),
         ));
@@ -409,7 +416,8 @@ impl ServerRuntime {
             PlatformDownloadLinkProvider::from_credentials_file(
                 data_dir.join("qq-credentials.json"),
             )
-            .with_kugou_store(kugou_store.clone()),
+            .with_kugou_store(kugou_store.clone())
+            .with_netease_store(netease_store.clone()),
         );
         let login_store = Arc::new(FileLoginStore::new(data_dir.join("qq-credentials.json")));
         let runner = Arc::new(ServerRunner {
@@ -431,6 +439,7 @@ impl ServerRuntime {
             events,
             login_store,
             kugou_store,
+            netease_store,
             playback: Default::default(),
             playback_links: links,
             settings_patch_lock: Mutex::new(()),

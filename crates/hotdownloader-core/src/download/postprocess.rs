@@ -33,6 +33,9 @@ pub async fn prepare_assets(
 ) -> PostprocessAssets {
     let lyric = if write_metadata || download_lrc {
         let result = match context.platform {
+            Platform::Netease => {
+                crate::platforms::netease::lyrics::get_lyric_by_id(context.song_id).await
+            }
             Platform::Kugou => crate::platforms::kugou::lyrics::get_lyric(&context.song_mid).await,
             Platform::QqMusic => {
                 crate::platforms::qqmusic::lyrics::get_lyric_by_id(context.song_id).await

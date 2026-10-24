@@ -169,6 +169,7 @@ pub fn run() {
             commands::api::login::logout,
             commands::api::login::get_login_status,
             commands::api::login::kugou_login,
+            commands::api::login::netease_login,
             commands::notify::request_notification_permission,
             commands::notify::check_notification_permission,
         ])
