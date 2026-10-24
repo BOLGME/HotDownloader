@@ -32,20 +32,11 @@
                 >
             </div>
         </n-alert>
-        <!-- 移动端：分组纵向布局；桌面端：原有左右分栏表单。
-             共用组件实例，缩放窗口时保留登录输入和弹窗中的编辑草稿。 -->
-        <!-- 账号设置：独立分类，位于基本设置上方，增加底部间距避免与下方黏连 -->
-        <div class="settings-section account-section">
-            <h2 class="section-title">账号设置</h2>
-            <n-form :label-placement="isNarrow ? 'top' : 'left'">
-                <h3>QQ 音乐</h3>
-                <LoginSetting />
-                <h3>酷狗音乐</h3>
-                <KugouLoginSetting />
-                <h3>网易云音乐</h3>
-                <NeteaseLoginSetting />
-            </n-form>
-        </div>
+        <header class="settings-header">
+            <h1>设置</h1>
+            <p>管理音乐账号与下载偏好</p>
+        </header>
+        <AccountSettings />
 
         <div class="settings-section">
             <h2 class="section-title">基本设置</h2>
@@ -105,9 +96,7 @@ import ClearHistoryButton from '../components/settings/ClearHistoryButton.vue'
 import WriteMetadataSetting from '../components/settings/WriteMetadataSetting.vue'
 import CoverQualitySetting from '../components/settings/CoverQualitySetting.vue'
 import DownloadLrcSetting from '../components/settings/DownloadLrcSetting.vue'
-import LoginSetting from '../components/settings/LoginSetting.vue'
-import KugouLoginSetting from '../components/settings/KugouLoginSetting.vue'
-import NeteaseLoginSetting from '../components/settings/NeteaseLoginSetting.vue'
+import AccountSettings from '../components/settings/AccountSettings.vue'
 import DuplicateStrategySetting from '../components/settings/DuplicateStrategySetting.vue'
 import NotifySetting from '../components/settings/NotifySetting.vue'
 import UpdateChecker from '../components/settings/UpdateChecker.vue'
@@ -164,6 +153,21 @@ function goAbout() {
     margin-bottom: 16px;
 }
 
+.settings-header {
+    margin-bottom: 24px;
+}
+
+.settings-header h1 {
+    font-size: 26px;
+    font-weight: 650;
+    margin-bottom: 6px;
+}
+
+.settings-header p {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
 .conflict-row {
     display: flex;
     align-items: center;
@@ -183,11 +187,7 @@ function goAbout() {
     min-width: 0;
     background: var(--bg-sidebar);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-}
-
-.account-section {
-    margin-bottom: 20px;
+    border-radius: 14px;
 }
 
 .settings-section + .settings-section {

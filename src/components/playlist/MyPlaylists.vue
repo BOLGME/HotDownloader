@@ -8,7 +8,13 @@
         <div v-else-if="!loggedIn" class="placeholder">
             <n-empty :description="`登录${name}后即可查看自己创建的歌单`">
                 <template #extra
-                    ><n-button @click="router.push('/settings')"
+                    ><n-button
+                        @click="
+                            router.push({
+                                path: '/settings',
+                                query: { platform },
+                            })
+                        "
                         >前往登录</n-button
                     ></template
                 >
@@ -31,7 +37,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { NAlert, NButton, NEmpty, NSpin } from 'naive-ui'
 import PlaylistSearchResult from '../search/PlaylistSearchResult.vue'
 import * as musicApi from '../../api/musicApi'
-import { neteaseLogin } from '../../api/neteaseLogin'
+import { getLoginAdapter, isLoginPlatform } from '../../api/platformLoginApi'
 import type { PlaylistSearchItem } from '../../types'
 
 const props = defineProps<{ platform: string; name: string }>()
@@ -49,12 +55,14 @@ async function refresh() {
     loading.value = true
     error.value = ''
     try {
-        const status =
-            props.platform === 'netease'
-                ? await neteaseLogin('status')
-                : await musicApi.getLoginStatus(props.platform)
+        if (!isLoginPlatform(props.platform)) {
+            loggedIn.value = false
+            playlists.value = []
+            return
+        }
+        const status = await getLoginAdapter(props.platform).status()
         if (current !== requestId) return
-        loggedIn.value = status.logged_in ?? false
+        loggedIn.value = status.loggedIn
         if (!loggedIn.value) {
             playlists.value = []
             return

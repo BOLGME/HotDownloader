@@ -76,6 +76,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { NButton, NModal, NText } from 'naive-ui'
 import { useUpdateChecker } from '../../composables/useUpdateChecker'
 
 withDefaults(

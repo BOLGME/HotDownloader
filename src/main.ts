@@ -1,6 +1,5 @@
 import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
-import naive from 'naive-ui'
 import App from './App.vue'
 import router from './router'
 import { useSettingsStore } from './stores/settingsStore'
@@ -18,7 +17,6 @@ let cleanupTaskListeners: (() => void) | null = null
 
 app.use(pinia)
 app.use(router)
-app.use(naive)
 
 async function init() {
     // 原生安全区域只在 Tauri 环境加载，普通浏览器页面无需等待原生插件。
