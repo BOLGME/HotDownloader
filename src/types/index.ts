@@ -68,6 +68,8 @@ export function normalizeQualityDowngradeOrder(value: unknown): string[] {
 
 export type Quality = string // 不再限制字面量，兼容所有后端标签
 
+export type CoverQuality = 'source' | '500' | 'original'
+
 export type TaskStatus =
     | 'waiting'
     | 'downloading'
@@ -92,6 +94,7 @@ export interface Settings {
     safFolderUri?: string
     safFolderName?: string
     writeMetadata: boolean
+    coverQuality: CoverQuality
     downloadLrc: boolean
     // 登录相关字段，可选，未登录时不设置
     loginUin?: string
@@ -111,6 +114,13 @@ export interface QualityItem {
     quality: string // 品质标签，如 "128kmp3", "flac", "臻品母带" 等
     filename: string // 对应下载文件名
     size: number // 文件字节大小
+}
+
+export interface PlaybackSource {
+    id: string
+    url: string
+    quality: string
+    contentType: string
 }
 
 /** 歌曲或专辑中的歌手关联信息。 */
@@ -301,6 +311,7 @@ export const DEFAULT_SETTINGS: Settings = {
     jumpToTask: true,
     artistSeparator: '、',
     writeMetadata: false,
+    coverQuality: 'original',
     downloadLrc: false,
     loginUin: '',
     authst: '',

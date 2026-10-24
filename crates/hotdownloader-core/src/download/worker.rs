@@ -481,6 +481,7 @@ mod tests {
             naming_template: "{song} - {artist}".into(),
             saf_folder_uri: None,
             write_metadata: false,
+            cover_quality: Default::default(),
             download_lrc: false,
         };
         let sink = RecordingSink::default();
@@ -629,6 +630,7 @@ mod tests {
                     naming_template: "{song}".into(),
                     saf_folder_uri: None,
                     write_metadata: false,
+                    cover_quality: Default::default(),
                     download_lrc: false,
                 },
                 DownloadWorkerPorts {

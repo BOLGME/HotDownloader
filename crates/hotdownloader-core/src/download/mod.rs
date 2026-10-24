@@ -2,6 +2,7 @@
 
 pub mod config;
 pub mod context;
+mod cover;
 pub(crate) mod decryption;
 pub mod engine;
 pub mod fallback;

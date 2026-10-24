@@ -154,6 +154,7 @@ pub fn run() {
             commands::api::search::fetch_artist_albums,
             commands::api::search::fetch_album_songs,
             commands::api::search::fetch_cover,
+            commands::api::playback::resolve_playback,
             commands::api::suggest::fetch_hot_keywords,
             commands::api::suggest::fetch_suggestions,
             commands::api::playlist::fetch_playlist_songs,

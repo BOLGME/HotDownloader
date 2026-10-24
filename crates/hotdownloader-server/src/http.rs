@@ -6,8 +6,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use futures_util::stream;
+use futures_util::{stream, StreamExt};
 use hotdownloader_core::platforms::qqmusic::login::{self as qq_login, LoginCredentialStore};
+use hotdownloader_core::playback::{self, PlaybackRequest};
 use hotdownloader_core::settings::patch::{SettingsPatch, SettingsPatchError};
 use hotdownloader_core::task::contract::CreateTaskRequest;
 use hotdownloader_core::task::service::TaskService;
@@ -22,6 +23,10 @@ use crate::music::{self, MusicRequest};
 use crate::runtime::ServerRuntime;
 
 type HttpBody = http_body_util::combinators::UnsyncBoxBody<Bytes, Infallible>;
+
+#[cfg(test)]
+#[path = "playback_http_tests.rs"]
+mod playback_tests;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -105,6 +110,72 @@ fn static_response(web_dir: &Path, url_path: &str) -> Response<HttpBody> {
         .header("referrer-policy", "same-origin")
         .body(Full::new(Bytes::from(bytes)).boxed_unsync())
         .expect("固定的静态资源响应头应始终有效")
+}
+
+async fn playback_stream(
+    request: &Request<Incoming>,
+    runtime: &ServerRuntime,
+    id: &str,
+) -> Response<HttpBody> {
+    let Some(source) = runtime.playback.get(id) else {
+        return error_response(StatusCode::NOT_FOUND, "试听链接已失效，请重新试听");
+    };
+    let range = request
+        .headers()
+        .get("range")
+        .and_then(|value| value.to_str().ok());
+    let upstream =
+        match playback::open_stream(&source, range, request.method() == Method::HEAD).await {
+            Ok(response) => response,
+            Err(error) => return error_response(StatusCode::BAD_GATEWAY, error),
+        };
+    if !matches!(upstream.status().as_u16(), 200 | 206 | 416) {
+        return error_response(StatusCode::BAD_GATEWAY, "音源暂时无法播放，请重新试听");
+    }
+    let mut response = Response::builder()
+        .status(upstream.status().as_u16())
+        .header("content-type", &source.content_type)
+        .header("cache-control", "no-store")
+        .header("referrer-policy", "no-referrer")
+        .header("x-content-type-options", "nosniff");
+    for name in [
+        "content-length",
+        "content-range",
+        "accept-ranges",
+        "content-encoding",
+    ] {
+        if let Some(value) = upstream.headers().get(name) {
+            response = response.header(name, value);
+        }
+    }
+    if request.method() == Method::HEAD {
+        return response
+            .body(Full::new(Bytes::new()).boxed_unsync())
+            .unwrap();
+    }
+    let (sender, receiver) = mpsc::channel::<Bytes>(4);
+    tokio::spawn(async move {
+        let mut bytes = upstream.bytes_stream();
+        loop {
+            tokio::select! {
+                _ = sender.closed() => break,
+                chunk = bytes.next() => match chunk {
+                    Some(Ok(chunk)) => if sender.send(chunk).await.is_err() { break; },
+                    Some(Err(error)) => { log::warn!("试听音频流中断: {error}"); break; },
+                    None => break,
+                }
+            }
+        }
+    });
+    let frames = stream::unfold(receiver, |mut receiver| async move {
+        receiver
+            .recv()
+            .await
+            .map(|bytes| (Ok::<_, Infallible>(Frame::data(bytes)), receiver))
+    });
+    response
+        .body(StreamBody::new(frames).boxed_unsync())
+        .unwrap()
 }
 
 async fn read_json(request: Request<Incoming>) -> Result<Value, String> {
@@ -233,6 +304,12 @@ pub async fn handle(
             error_response(StatusCode::METHOD_NOT_ALLOWED, "认证模式只支持 GET")
         });
     }
+    // 音频元素不能附加 Authorization；只接受已认证请求创建的随机短期会话。
+    if matches!(*request.method(), Method::GET | Method::HEAD) {
+        if let Some(id) = path.strip_prefix("/api/playback/") {
+            return Ok(playback_stream(&request, &runtime, id).await);
+        }
+    }
     let authorization = request
         .headers()
         .get("authorization")
@@ -250,6 +327,27 @@ pub async fn handle(
     );
 
     let response = match (method, path.as_str()) {
+        (Method::POST, "/api/playback") => match read_json(request).await {
+            Ok(value) => match serde_json::from_value::<PlaybackRequest>(value) {
+                Ok(input) => {
+                    match playback::resolve(runtime.playback_links.as_ref(), input).await {
+                        Ok(source) => match runtime.playback.insert(source) {
+                            Ok(source) => json_response(StatusCode::OK, json!(source)),
+                            Err(error) => error_response(StatusCode::TOO_MANY_REQUESTS, error),
+                        },
+                        Err(error) => error_response(StatusCode::BAD_REQUEST, error),
+                    }
+                }
+                Err(error) => error_response(StatusCode::BAD_REQUEST, error.to_string()),
+            },
+            Err(error) => error_response(StatusCode::BAD_REQUEST, error),
+        },
+        (Method::DELETE, path) if path.starts_with("/api/playback/") => {
+            runtime
+                .playback
+                .remove(path.trim_start_matches("/api/playback/"));
+            json_response(StatusCode::OK, json!({ "ok": true }))
+        }
         (Method::GET, "/api/library") => {
             monitor_result(runtime.monitors.library_status(&runtime.environment))
         }

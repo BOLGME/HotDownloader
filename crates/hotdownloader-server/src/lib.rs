@@ -5,4 +5,5 @@ pub mod http;
 pub mod logging;
 pub mod monitor;
 pub mod music;
+pub mod playback;
 pub mod runtime;

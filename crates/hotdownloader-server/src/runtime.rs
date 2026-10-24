@@ -317,6 +317,8 @@ pub struct ServerRuntime {
     pub environment: Arc<ServerEnvironment>,
     pub events: Arc<ServerEvents>,
     pub login_store: Arc<FileLoginStore>,
+    pub playback: crate::playback::PlaybackSessions,
+    pub playback_links: Arc<PlatformDownloadLinkProvider>,
     pub auth: crate::auth::AccessAuth,
     pub web_dir: PathBuf,
     settings_patch_lock: Mutex<()>,
@@ -364,6 +366,10 @@ impl ServerRuntime {
             environment,
             events,
             login_store: Arc::new(FileLoginStore::new(data_dir.join("qq-credentials.json"))),
+            playback: Default::default(),
+            playback_links: Arc::new(PlatformDownloadLinkProvider::from_credentials_file(
+                data_dir.join("qq-credentials.json"),
+            )),
             auth: crate::auth::AccessAuth::None,
             web_dir: data_dir.into(),
             settings_patch_lock: Mutex::new(()),
@@ -398,7 +404,7 @@ impl ServerRuntime {
         let login_store = Arc::new(FileLoginStore::new(data_dir.join("qq-credentials.json")));
         let runner = Arc::new(ServerRunner {
             settings: environment.clone(),
-            links,
+            links: links.clone(),
             progress,
         });
         let engine = DownloadEngine::new(
@@ -414,6 +420,8 @@ impl ServerRuntime {
             environment,
             events,
             login_store,
+            playback: Default::default(),
+            playback_links: links,
             settings_patch_lock: Mutex::new(()),
             auth,
             web_dir: std::env::var_os("HOTDOWNLOADER_WEB_DIR")

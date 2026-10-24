@@ -15,6 +15,7 @@ const SHARED_KEYS: SettingKey[] = [
     'maxConcurrent',
     'artistSeparator',
     'writeMetadata',
+    'coverQuality',
     'downloadLrc',
     'duplicateStrategy',
 ]
