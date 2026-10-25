@@ -32,15 +32,11 @@
                 >
             </div>
         </n-alert>
-        <!-- 移动端：分组纵向布局；桌面端：原有左右分栏表单。
-             共用组件实例，缩放窗口时保留登录输入和弹窗中的编辑草稿。 -->
-        <!-- 账号设置：独立分类，位于基本设置上方，增加底部间距避免与下方黏连 -->
-        <div class="settings-section account-section">
-            <h2 class="section-title">账号设置</h2>
-            <n-form :label-placement="isNarrow ? 'top' : 'left'">
-                <LoginSetting />
-            </n-form>
-        </div>
+        <header class="settings-header">
+            <h1>设置</h1>
+            <p>管理音乐账号与下载偏好</p>
+        </header>
+        <AccountSettings />
 
         <div class="settings-section">
             <h2 class="section-title">基本设置</h2>
@@ -77,6 +73,18 @@
         <!-- 检查更新组件 -->
         <UpdateChecker v-if="native" />
 
+        <!-- 问题反馈入口 -->
+        <div class="feedback-entry">
+            <n-button
+                tag="a"
+                :href="feedbackUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                问题反馈
+            </n-button>
+        </div>
+
         <!-- 关于入口（始终位于页面底部） -->
         <div class="about-entry">
             <n-button text @click="goAbout">关于 HotDownloader</n-button>
@@ -100,7 +108,7 @@ import ClearHistoryButton from '../components/settings/ClearHistoryButton.vue'
 import WriteMetadataSetting from '../components/settings/WriteMetadataSetting.vue'
 import CoverQualitySetting from '../components/settings/CoverQualitySetting.vue'
 import DownloadLrcSetting from '../components/settings/DownloadLrcSetting.vue'
-import LoginSetting from '../components/settings/LoginSetting.vue'
+import AccountSettings from '../components/settings/AccountSettings.vue'
 import DuplicateStrategySetting from '../components/settings/DuplicateStrategySetting.vue'
 import NotifySetting from '../components/settings/NotifySetting.vue'
 import UpdateChecker from '../components/settings/UpdateChecker.vue'
@@ -137,6 +145,9 @@ function settingLabel(field: keyof Settings): string {
     return settingLabels[field] ?? field
 }
 
+// 问题反馈地址
+const feedbackUrl = 'https://github.com/lerdb/HotDownloader/issues'
+
 function goAbout() {
     router.push('/settings/about')
 }
@@ -155,6 +166,21 @@ function goAbout() {
 
 .settings-alert {
     margin-bottom: 16px;
+}
+
+.settings-header {
+    margin-bottom: 24px;
+}
+
+.settings-header h1 {
+    font-size: 26px;
+    font-weight: 650;
+    margin-bottom: 6px;
+}
+
+.settings-header p {
+    color: var(--color-text-secondary);
+    font-size: 14px;
 }
 
 .conflict-row {
@@ -176,11 +202,7 @@ function goAbout() {
     min-width: 0;
     background: var(--bg-sidebar);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-}
-
-.account-section {
-    margin-bottom: 20px;
+    border-radius: 14px;
 }
 
 .settings-section + .settings-section {
@@ -192,6 +214,16 @@ function goAbout() {
     font-weight: 600;
     margin-bottom: 12px;
     color: var(--color-text);
+}
+
+/* 问题反馈入口：保持居中布局 */
+.feedback-entry {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 24px;
 }
 
 .about-entry {
@@ -228,6 +260,19 @@ function goAbout() {
 }
 
 @media (max-width: 767px) {
+    .settings-header {
+        margin-bottom: 16px;
+    }
+
+    .settings-header h1 {
+        font-size: 22px;
+        margin-bottom: 4px;
+    }
+
+    .settings-header p {
+        font-size: 13px;
+    }
+
     .settings-section,
     .settings-section + .settings-section {
         padding: 16px 12px;

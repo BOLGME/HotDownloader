@@ -15,10 +15,21 @@ pub async fn fetch_playlist_songs(
     // 歌单解析需要用户设置的歌手分隔符，具体请求无需接触 AppHandle。
     let separator = get_artist_separator(&app);
     match p {
+        Platform::Netease => {
+            platforms::netease::playlist::fetch_playlist_songs(
+                &separator,
+                input,
+                &super::login::netease_store(&app)?.cookie()?,
+            )
+            .await
+        }
         Platform::QqMusic => {
             platforms::qqmusic::playlist::fetch_playlist_songs(&separator, input).await
         }
         Platform::Kuwo => platforms::kuwo::playlist::fetch_playlist_songs(&separator, input).await,
+        Platform::Kugou => {
+            platforms::kugou::playlist::fetch_playlist_songs(&separator, input).await
+        }
     }
 }
 
@@ -28,6 +39,7 @@ pub async fn fetch_playlist_songs(
 /// 返回 JSON 字符串，格式为 `{"playlists": [...], "has_more": true/false}`。
 #[command]
 pub async fn search_playlists(
+    app: AppHandle,
     platform: String,
     keyword: String,
     page: u32,
@@ -35,16 +47,43 @@ pub async fn search_playlists(
 ) -> Result<String, String> {
     let p = platform.parse::<Platform>()?;
     match p {
+        Platform::Netease => {
+            platforms::netease::playlist::search_playlists(
+                keyword,
+                page,
+                limit,
+                &super::login::netease_store(&app)?.cookie()?,
+            )
+            .await
+        }
         Platform::QqMusic => {
             platforms::qqmusic::playlist::search_playlists(keyword, page, limit).await
         }
         Platform::Kuwo => platforms::kuwo::playlist::search_playlists(keyword, page, limit).await,
+        Platform::Kugou => platforms::kugou::playlist::search_playlists(keyword, page, limit).await,
     }
 }
 
 /// 读取当前 QQ 登录用户创建的歌单；UIN 从 Tauri 登录存储取得。
 #[command]
-pub async fn fetch_created_playlists(app: AppHandle) -> Result<String, String> {
+pub async fn fetch_created_playlists(
+    app: AppHandle,
+    platform: Option<String>,
+) -> Result<String, String> {
+    match platform
+        .as_deref()
+        .unwrap_or("qqmusic")
+        .parse::<Platform>()?
+    {
+        Platform::Netease => {
+            return platforms::netease::playlist::fetch_created_playlists(
+                &super::login::netease_store(&app)?.cookie()?,
+            )
+            .await
+        }
+        Platform::QqMusic => {}
+        _ => return Err("该平台暂不支持个人歌单".into()),
+    }
     crate::platforms::qqmusic::login::fetch_created_playlists(&app).await
 }
 
@@ -52,9 +91,26 @@ pub async fn fetch_created_playlists(app: AppHandle) -> Result<String, String> {
 #[command]
 pub async fn fetch_created_playlist_songs(
     app: AppHandle,
+    platform: Option<String>,
     id: String,
     dirid: String,
 ) -> Result<String, String> {
+    match platform
+        .as_deref()
+        .unwrap_or("qqmusic")
+        .parse::<Platform>()?
+    {
+        Platform::Netease => {
+            return platforms::netease::playlist::fetch_playlist_songs(
+                &get_artist_separator(&app),
+                id,
+                &super::login::netease_store(&app)?.cookie()?,
+            )
+            .await
+        }
+        Platform::QqMusic => {}
+        _ => return Err("该平台暂不支持个人歌单".into()),
+    }
     let separator = get_artist_separator(&app);
     crate::platforms::qqmusic::login::fetch_created_playlist_songs(&app, &separator, id, dirid)
         .await

@@ -106,15 +106,17 @@ export async function fetchPlaylistSongs(
 }
 
 // UIN 与登录凭据由后端读取，前端只请求当前账号的歌单。
-export async function fetchCreatedPlaylists(): Promise<CreatedPlaylistsResponse> {
+export async function fetchCreatedPlaylists(
+    platform = 'qqmusic',
+): Promise<CreatedPlaylistsResponse> {
     const parsed = await musicCall<CreatedPlaylistsResponse>(
         'fetch_created_playlists',
         'playlists/created',
-        { platform: 'qqmusic' },
+        { platform },
     )
     parsed.playlists = parsed.playlists.map((playlist) => ({
         ...playlist,
-        platform: 'qqmusic',
+        platform,
     }))
     return parsed
 }
@@ -123,15 +125,16 @@ export async function fetchCreatedPlaylists(): Promise<CreatedPlaylistsResponse>
 export async function fetchCreatedPlaylistSongs(
     id: string,
     dirid: string,
+    platform = 'qqmusic',
 ): Promise<PlaylistSongsResponse> {
     const parsed = await musicCall<PlaylistSongsResponse>(
         'fetch_created_playlist_songs',
         'playlists/created/fetch',
-        { platform: 'qqmusic', id, dirid },
+        { platform, id, dirid },
     )
     parsed.songs = parsed.songs.map((song) => ({
         ...song,
-        platform: 'qqmusic',
+        platform,
     }))
     return parsed
 }
@@ -178,13 +181,19 @@ export async function checkForUpdate(): Promise<UpdateInfo> {
 export async function getLyricBySongId(
     platform: string,
     songId: number,
+    songMid?: string,
 ): Promise<LyricResponse> {
     if (!native) {
-        return musicCall('get_lyric_by_id', 'lyrics', { platform, songId })
+        return musicCall('get_lyric_by_id', 'lyrics', {
+            platform,
+            songId,
+            songMid,
+        })
     }
     return invoke<LyricResponse>('get_lyric_by_id', {
         platform,
         songId,
+        songMid,
     })
 }
 

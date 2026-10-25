@@ -51,7 +51,8 @@ pub async fn resolve(
             .song_mid
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric())
-        || (platform == Platform::Kuwo && request.song_mid.parse::<u64>().unwrap_or(0) == 0)
+        || (matches!(platform, Platform::Kuwo | Platform::Netease)
+            && request.song_mid.parse::<u64>().unwrap_or(0) == 0)
         || request.qualities.len() > 64
     {
         return Err("无效的试听歌曲参数".into());

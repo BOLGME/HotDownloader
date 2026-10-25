@@ -496,6 +496,7 @@ pub async fn handle(
                             input,
                             &runtime.environment.artist_separator(),
                             runtime.login_store.as_ref(),
+                            runtime.netease_store.as_ref(),
                         )
                         .await
                         {
@@ -504,6 +505,59 @@ pub async fn handle(
                         }
                     }
                     Err(error) => error_response(StatusCode::BAD_REQUEST, error.to_string()),
+                },
+                Err(error) => error_response(StatusCode::BAD_REQUEST, error),
+            }
+        }
+        (Method::POST, "/api/login/kugou") => {
+            #[derive(Deserialize)]
+            struct Input {
+                action: String,
+                #[serde(default)]
+                id: String,
+                credentials: Option<hotdownloader_core::platforms::kugou::login::ManualCredentials>,
+            }
+            match read_json(request)
+                .await
+                .and_then(|v| serde_json::from_value::<Input>(v).map_err(|e| e.to_string()))
+            {
+                Ok(input) => match hotdownloader_core::platforms::kugou::login::execute(
+                    &runtime.kugou_store,
+                    &input.action,
+                    &input.id,
+                    input.credentials,
+                )
+                .await
+                {
+                    Ok(value) => json_response(StatusCode::OK, value),
+                    Err(error) => error_response(StatusCode::BAD_REQUEST, error),
+                },
+                Err(error) => error_response(StatusCode::BAD_REQUEST, error),
+            }
+        }
+        (Method::POST, "/api/login/netease") => {
+            #[derive(Deserialize)]
+            struct Input {
+                action: String,
+                #[serde(default)]
+                id: String,
+                credentials:
+                    Option<hotdownloader_core::platforms::netease::login::ManualCredentials>,
+            }
+            match read_json(request)
+                .await
+                .and_then(|v| serde_json::from_value::<Input>(v).map_err(|e| e.to_string()))
+            {
+                Ok(input) => match hotdownloader_core::platforms::netease::login::execute(
+                    &runtime.netease_store,
+                    &input.action,
+                    &input.id,
+                    input.credentials,
+                )
+                .await
+                {
+                    Ok(value) => json_response(StatusCode::OK, value),
+                    Err(error) => error_response(StatusCode::BAD_REQUEST, error),
                 },
                 Err(error) => error_response(StatusCode::BAD_REQUEST, error),
             }

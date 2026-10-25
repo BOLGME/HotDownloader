@@ -11,6 +11,12 @@ pub enum Platform {
     /// 酷我音乐
     #[serde(rename = "kuwo")]
     Kuwo,
+    /// 酷狗音乐
+    #[serde(rename = "kugou")]
+    Kugou,
+    /// 网易云音乐
+    #[serde(rename = "netease")]
+    Netease,
 }
 
 impl FromStr for Platform {
@@ -21,6 +27,8 @@ impl FromStr for Platform {
         match value {
             "qqmusic" => Ok(Self::QqMusic),
             "kuwo" => Ok(Self::Kuwo),
+            "kugou" => Ok(Self::Kugou),
+            "netease" => Ok(Self::Netease),
             _ => Err(format!("不支持的平台: {value}")),
         }
     }
@@ -34,6 +42,8 @@ mod tests {
     fn platform_strings_keep_existing_error_contract() {
         assert_eq!("qqmusic".parse::<Platform>().unwrap(), Platform::QqMusic);
         assert_eq!("kuwo".parse::<Platform>().unwrap(), Platform::Kuwo);
+        assert_eq!("kugou".parse::<Platform>().unwrap(), Platform::Kugou);
+        assert_eq!("netease".parse::<Platform>().unwrap(), Platform::Netease);
         assert_eq!(
             "other".parse::<Platform>().unwrap_err(),
             "不支持的平台: other"

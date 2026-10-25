@@ -1,7 +1,7 @@
 {
   "name": "hotdownloader",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.1.0",
   "license": "Apache-2.0",
   "description": "基于共享 Rust 下载核心和 Vue 3 的音乐下载工具",
   "type": "module",
@@ -20,7 +20,7 @@
     "format:css": "prettier --write \"src/**/*.{css,scss,less}\"",
     "format:css:check": "prettier --check \"src/**/*.{css,scss,less}\"",
     "test:all": "npm run test:frontend && npm run test:rust && npm run test:monitor-http",
-    "test:frontend": "npm run build && npm run test:storage-recovery && npm run test:monitor-view && npm run test:task-focus && npm run test:playback",
+    "test:frontend": "npm run build && npm run test:storage-recovery && npm run test:monitor-view && npm run test:task-focus && npm run test:playback && npm run test:platform-login",
     "test:rust": "npm run test:core && npm run test:server && npm run test:tauri && npm run test:crypto",
     "test:core": "cargo test --locked --workspace --manifest-path crates/hotdownloader-core/Cargo.toml",
     "test:server": "cargo test --locked --workspace --manifest-path crates/hotdownloader-server/Cargo.toml",
@@ -32,6 +32,7 @@
     "test:monitor-view": "node --test scripts/monitor-view.test.mjs",
     "test:task-focus": "node --test scripts/task-focus.test.mjs",
     "test:playback": "node --test scripts/playback.test.mjs",
+    "test:platform-login": "node --test scripts/platform-login.test.mjs",
     "generate:licenses": "node scripts/generate-licenses.mjs"
   },
   "dependencies": {

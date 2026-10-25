@@ -82,9 +82,19 @@ mod tests {
         }
         let mut kuwo = record("kw");
         kuwo["platform"] = json!("kuwo");
-        let result = recover_tasks(&json!([record("qq"), kuwo]).to_string());
-        assert_eq!(result.tasks.len(), 2);
+        let mut kugou = record("kg");
+        kugou["platform"] = json!("kugou");
+        kugou["songMid"] = json!("0123456789abcdef0123456789abcdef");
+        kugou["filename"] = json!("0123456789abcdef0123456789abcdef_123_456_flac.flac");
+        let result = recover_tasks(&json!([record("qq"), kuwo, kugou]).to_string());
+        assert_eq!(result.tasks.len(), 3);
         assert_eq!(result.tasks[1].platform, "kuwo");
+        assert_eq!(result.tasks[2].platform, "kugou");
+        assert_eq!(result.tasks[2].song_mid, "0123456789abcdef0123456789abcdef");
+        assert_eq!(
+            result.tasks[2].filename,
+            "0123456789abcdef0123456789abcdef_123_456_flac.flac"
+        );
         assert!(result.errors.is_empty());
         assert_eq!(result.migrated, 0);
     }

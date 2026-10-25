@@ -105,7 +105,7 @@ function openMyPlaylist(item: PlaylistSearchItem) {
     void router.push({
         path: '/playlist',
         query: {
-            platform: 'qqmusic',
+            platform: item.platform ?? 'qqmusic',
             id: item.id,
             dirid: item.dirid ?? '0',
             source: 'mine',
@@ -141,7 +141,7 @@ async function loadDetail(force = false) {
     }
     if (
         mine &&
-        (platform !== 'qqmusic' ||
+        (!['qqmusic', 'netease'].includes(platform) ||
             !/^\d+$/.test(id) ||
             typeof dirid !== 'string' ||
             !/^\d+$/.test(dirid))
@@ -151,7 +151,7 @@ async function loadDetail(force = false) {
     }
 
     if (mine) {
-        await loadCreatedPlaylist(id, dirid as string)
+        await loadCreatedPlaylist(id, dirid as string, platform)
     } else {
         await importPlaylist(platform, id)
     }

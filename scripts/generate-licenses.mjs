@@ -284,6 +284,20 @@ function collectLicenseTexts(allComponents) {
 
         process.exit(1)
     }
+    // 酷狗协议移植保留上游完整版权声明，同时进入客户端和服务端产物。
+    texts.push({
+        id: 'KuGouMusicApi-MIT',
+        name: 'KuGouMusicApi — MIT License (Copyright 2023 MakcRe)',
+        text: fs
+            .readFileSync(
+                path.join(
+                    projectRoot,
+                    'crates/hotdownloader-core/src/platforms/kugou/LICENSE',
+                ),
+                'utf8',
+            )
+            .trim(),
+    })
     return texts
 }
 
