@@ -28,8 +28,9 @@ pub(crate) struct EnhancedLine {
     pub time: String,
     pub line_start_ms: i64,
     pub words: Vec<Word>,
-    /// `<0,0>` 是译文占位标签，不代表可供逐字高亮的真实时间。
+    /// 是否具有可供逐字高亮的真实时间；全零词标签只提供行级时间。
     pub has_word_timing: bool,
+    /// 全零词标签的源行，可能是译文占位或停唱空行，须结合相邻行判断用途。
     pub is_timing_placeholder: bool,
 }
 
@@ -283,11 +284,7 @@ fn parse_lyric_lines(lrc: &str, offset: i64, offset2: i64) -> (Vec<LyricLine>, V
         let has_word_timing = words
             .iter()
             .any(|word| word.start_ms != line_start_ms || word.duration_ms != 0);
-        // 原文之间还可能夹有只有空白和零值标签的译文占位行；它们不是停唱标记。
-        // 真正的无标签空行仍由上面的普通行分支保留。
-        if !has_word_timing && plain_text.trim().is_empty() {
-            continue;
-        }
+        // 先保留零值空行，待完整时间轴可见后再区分译文占位与间奏/结束标记。
         lyric_lines.push(LyricLine {
             time: normalized_time.clone(),
             text: plain_text,
@@ -303,32 +300,45 @@ fn parse_lyric_lines(lrc: &str, offset: i64, offset2: i64) -> (Vec<LyricLine>, V
         });
     }
 
+    // 只有与下一条逐字原文同刻的零值空行，才确定是无内容的译文占位。
+    // 倒序同步移除两种表示中的占位；其余空行保留原时间，继续用于清除高亮。
+    for index in (0..lyric_lines.len().saturating_sub(1)).rev() {
+        if enhanced_lines[index].is_timing_placeholder
+            && lyric_lines[index].text.trim().is_empty()
+            && enhanced_lines[index + 1].has_word_timing
+            && time_to_seconds(&enhanced_lines[index].time)
+                == time_to_seconds(&enhanced_lines[index + 1].time)
+        {
+            lyric_lines.remove(index);
+            enhanced_lines.remove(index);
+        }
+    }
     align_translations(&mut lyric_lines, &mut enhanced_lines);
     (lyric_lines, enhanced_lines)
 }
 
 /// 酷我将译文放在原文之后，但常用下一句原文的时间作为译文行时间。
-/// 以“有实际逐字时间的原文 + 零值/无逐字时间的译文 + 下一原文同刻”配对，
+/// 以“有实际逐字时间的原文 + 零值逐字占位译文 + 下一原文同刻”配对，
 /// 同时修正 LRC 与 ELRC；原文的逐字时间、行顺序和结束空行均保留。
 fn align_translations(lines: &mut [LyricLine], enhanced: &mut [EnhancedLine]) {
     let timed = enhanced.iter().any(|line| line.has_word_timing);
-    let original_kind = lines.iter().find_map(|line| text_kind(&line.text));
+    let plain_layout = !timed && is_shifted_plain_bilingual_block(lines);
     let mut aligned = false;
     for index in 1..lines.len() {
         let previous = index - 1;
         if lines[index].text.trim().is_empty() || enhanced[index].has_word_timing {
             continue;
         }
-        let bilingual_pair = original_kind.is_some_and(|kind| {
-            text_kind(&lines[previous].text) == Some(kind)
-                && text_kind(&lines[index].text) == Some(!kind)
-        });
-        // 普通行缺少逐字结构证据，只校正可以辨别的中英双语配对。
-        // 已经同刻对齐的译文和同时演唱的两条逐字原文不会进入此分支。
+        let original_kind = text_kind(&lines[previous].text);
+        let bilingual_pair =
+            original_kind.is_some_and(|kind| text_kind(&lines[index].text) == Some(!kind));
+        // 无逐字时间并不必然是译文：混合时间精度的原文和合唱行也可能逐行计时。
+        // 逐字文档须存在源接口的零值逐字占位；普通文档须整体满足延后译文排列。
+        // 不凭语言不同就改动无逐字标签的另一声部。
         if !(if timed {
-            enhanced[previous].has_word_timing
+            enhanced[previous].has_word_timing && enhanced[index].is_timing_placeholder
         } else {
-            bilingual_pair
+            plain_layout && bilingual_pair
         }) {
             continue;
         }
@@ -359,6 +369,27 @@ fn align_translations(lines: &mut [LyricLine], enhanced: &mut [EnhancedLine]) {
         }
         aligned = true;
     }
+}
+
+/// 普通 LRC 没有逐字结构可用于区分原文和译文，因此须完整匹配：
+/// 原文/译文成对、脚本交替、译文时间等于下一原文时间，并有末尾空行作为边界。
+/// 有前奏说明、已对齐双语或零散对唱时不凭局部重复时间推测行间关系。
+fn is_shifted_plain_bilingual_block(lines: &[LyricLine]) -> bool {
+    if lines.len() < 5 || lines.len() % 2 == 0 || !lines.last().unwrap().text.trim().is_empty() {
+        return false;
+    }
+    let Some(original_kind) = text_kind(&lines[0].text) else {
+        return false;
+    };
+    lines[..lines.len() - 1]
+        .chunks_exact(2)
+        .enumerate()
+        .all(|(index, pair)| {
+            text_kind(&pair[0].text) == Some(original_kind)
+                && text_kind(&pair[1].text) == Some(!original_kind)
+                && time_to_seconds(&pair[0].time) < time_to_seconds(&pair[1].time)
+                && time_to_seconds(&pair[1].time) == time_to_seconds(&lines[(index + 1) * 2].time)
+        })
 }
 
 /// 无逐字结构时的保守辅助判断：只区分单一的汉字/拉丁字母文本。
@@ -519,5 +550,52 @@ mod tests {
             build_enhanced_lrc_text(&tags, &enhanced),
             "[00:00.000]<00:00.000>First <00:00.500>line<00:01.000>"
         );
+    }
+
+    #[test]
+    fn untimed_originals_in_mixed_timing_and_duet_lines_keep_their_own_start() {
+        for raw in [
+            "[00:00.000]<500,-500>First voice\n[00:01.000]Second voice\n[00:01.000]<500,-500>Third voice",
+            "[00:00.000]<500,-500>第一声部\n[00:01.000]第二声部\n[00:01.000]<500,-500>第三声部",
+            "[00:00.000]<500,-500>第一声部\n[00:01.000]Second voice\n[00:01.000]<500,-500>第三声部",
+            "[00:00.000]<500,-500>First voice\n[00:01.000]第二声部\n[00:01.000]<500,-500>Third voice",
+        ] {
+            let (_, lines, enhanced) = parse_lyric(raw);
+            assert_eq!(lines.iter().map(|line| line.time.as_str()).collect::<Vec<_>>(),
+                ["00:00.000", "00:01.000", "00:01.000"]);
+            assert_eq!(enhanced[1].line_start_ms, 1000);
+        }
+    }
+
+    #[test]
+    fn zero_timing_end_and_instrumental_break_markers_are_preserved() {
+        let (tags, lines, enhanced) = parse_lyric(
+            "[00:00.000]<500,-500>First line\n[00:05.000]<0,0>\n[00:10.000]<500,-500>Second line\n[00:15.000]<0,0>",
+        );
+        assert_eq!(
+            build_lrc_text(&tags, &lines),
+            "[00:00.000]First line\n[00:05.000]\n[00:10.000]Second line\n[00:15.000]"
+        );
+        assert_eq!(build_enhanced_lrc_text(&tags, &enhanced),
+            "[00:00.000]<00:00.000>First line<00:00.500>\n[00:05.000]\n[00:10.000]<00:10.000>Second line<00:10.500>\n[00:15.000]");
+    }
+
+    #[test]
+    fn encoded_closing_blank_and_metadata_survive_translation_alignment() {
+        let raw = format!("[ti:Synthetic]\n[offset:100]\n{SHIFTED}<0,0>");
+        let (tags, lines, enhanced) = parse_lyric(&raw);
+        assert_eq!(tags, ["[ti:Synthetic]", "[offset:100]"]);
+        assert_eq!(lines.last().unwrap().time, "00:02.000");
+        assert_eq!(lines.last().unwrap().text, "");
+        assert_eq!(lines[3].time, "00:01.000");
+        assert!(build_enhanced_lrc_text(&tags, &enhanced).ends_with("\n[00:02.000]"));
+    }
+
+    #[test]
+    fn aligned_plain_translation_after_a_different_script_preamble_is_unchanged() {
+        let raw = "[00:00.000]Intro credits\n[00:10.000]第一行\n[00:10.000]First line\n[00:20.000]第二行\n[00:20.000]Second line\n[00:30.000]";
+        let (tags, lines, enhanced) = parse_lyric(raw);
+        assert_eq!(build_lrc_text(&tags, &lines), raw);
+        assert_eq!(build_enhanced_lrc_text(&tags, &enhanced), raw);
     }
 }
