@@ -148,8 +148,92 @@ impl DownloadPostprocessor for LocalDownloadPostprocessor {
 
 #[cfg(test)]
 mod tests {
-    use super::write_local_lrc;
+    use super::{write_audio_metadata, write_local_lrc};
+    use crate::download::context::{SongInfo, TaskContext};
+    use crate::download::postprocess::PostprocessAssets;
+    use crate::platforms::kuwo::lyric_decoder;
     use crate::platforms::lyric::LyricData;
+    use crate::platforms::Platform;
+    use lofty::file::TaggedFileExt;
+    use lofty::tag::ItemKey;
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+
+    #[test]
+    fn bilingual_word_times_survive_mp3_and_flac_metadata_and_plain_sidecar() {
+        // 使用现有的合成静音音频，验证实际落盘后的标签，避免只验证转换函数。
+        let files: [(&str, &[u8]); 2] = [
+            (
+                "mp3",
+                include_bytes!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/../hotdownloader-server/testdata/audio/silence.mp3"
+                )),
+            ),
+            (
+                "flac",
+                include_bytes!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/../hotdownloader-server/testdata/audio/silence.flac"
+                )),
+            ),
+        ];
+        let directory = std::env::temp_dir().join(format!(
+            "hotdownloader-lyrics-tags-{:x}",
+            rand::random::<u64>()
+        ));
+        std::fs::create_dir_all(&directory).unwrap();
+        let raw = "[00:00.000]<500,-500>First <1000,0>line\n[00:01.000]<0,0>第一行\n[00:01.000]<500,-500>Second <1000,0>line\n[00:02.000]<0,0>第二行\n[00:02.000]";
+        let (tags, lines, enhanced) = lyric_decoder::parse_lyric(raw);
+        let lrc = lyric_decoder::build_lrc_text(&tags, &lines);
+        let elrc = lyric_decoder::build_enhanced_lrc_text(&tags, &enhanced);
+        let assets = PostprocessAssets {
+            lyric: Some(LyricData {
+                lrc: Some(lrc.clone()),
+                elrc: Some(elrc.clone()),
+                ..LyricData::default()
+            }),
+            cover_bytes: None,
+        };
+        for (extension, bytes) in files {
+            let audio = directory.join(format!("bilingual.{extension}"));
+            std::fs::write(&audio, bytes).unwrap();
+            let context = TaskContext {
+                task_id: "lyric-round-trip".into(),
+                platform: Platform::Kuwo,
+                song_mid: "synthetic".into(),
+                song_id: 1,
+                url: String::new(),
+                save_path: audio.to_string_lossy().into(),
+                quality: "128kmp3".into(),
+                key: String::new(),
+                file_size: bytes.len() as u64,
+                downloaded_offset: 0,
+                quality_filename: String::new(),
+                final_path: Arc::new(Mutex::new(None)),
+                song_info: SongInfo {
+                    title: "测试歌曲".into(),
+                    artist: "测试歌手".into(),
+                    album: "测试专辑".into(),
+                    quality: "128kmp3".into(),
+                    cover_url: String::new(),
+                },
+            };
+            // Docker、本地 Tauri 和 Android SAF 临时文件都调用同一个标签写入函数。
+            assert!(write_audio_metadata(&audio, &context, &assets).unwrap());
+            assert!(write_audio_metadata(&audio, &context, &assets).unwrap());
+            let saved = lofty::read_from_path(&audio).unwrap();
+            let tag = saved.primary_tag().unwrap();
+            assert_eq!(tag.get_string(&ItemKey::Lyrics), Some(elrc.as_str()));
+            assert_eq!(tag.get_strings(&ItemKey::Lyrics).count(), 1);
+            let path =
+                write_local_lrc(audio.to_str().unwrap(), assets.lyric.as_ref().unwrap()).unwrap();
+            assert_eq!(std::fs::read_to_string(&path).unwrap(), lrc);
+            std::fs::remove_file(path).unwrap();
+            std::fs::remove_file(audio).unwrap();
+        }
+        std::fs::remove_dir(directory).unwrap();
+    }
 
     #[test]
     fn ordinary_lrc_uses_audio_stem_and_preserves_content() {

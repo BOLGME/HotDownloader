@@ -545,3 +545,18 @@ fn format_timestamp(ms: i64) -> String {
     let hundredths = (ms % 1000) / 10;
     format!("{:02}:{:02}.{:02}", mins, secs, hundredths)
 }
+
+#[cfg(test)]
+mod lyric_timing_tests {
+    use super::{to_enhanced_lrc, to_lrc};
+
+    #[test]
+    fn english_and_translation_keep_the_source_line_and_absolute_word_times() {
+        let raw = "[0,1000]First (0,500)line(500,500)\n[0,1000]第一行(0,1000)\n[1000,1000]Second (1000,500)line(1500,500)\n[1000,1000]第二行(1000,1000)";
+        assert_eq!(
+            to_lrc(raw),
+            "[00:00.00]First line\n[00:00.00]第一行\n[00:01.00]Second line\n[00:01.00]第二行"
+        );
+        assert_eq!(to_enhanced_lrc(raw), "[00:00.00]<00:00.00>First <00:00.50>line<00:01.00>\n[00:00.00]<00:00.00>第一行<00:01.00>\n[00:01.00]<00:01.00>Second <00:01.50>line<00:02.00>\n[00:01.00]<00:01.00>第二行<00:02.00>");
+    }
+}
