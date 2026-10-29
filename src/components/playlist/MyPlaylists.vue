@@ -6,7 +6,7 @@
             {{ error }} <n-button @click="refresh">重试</n-button>
         </n-alert>
         <div v-else-if="!loggedIn" class="placeholder">
-            <n-empty :description="`登录${name}后即可查看自己创建的歌单`">
+            <n-empty :description="`登录${name}后即可查看账号歌单`">
                 <template #extra
                     ><n-button
                         @click="
@@ -25,7 +25,7 @@
             :playlists="playlists"
             :has-more="false"
             :loading-more="false"
-            empty-description="暂无自己创建的歌单"
+            empty-description="暂无歌单"
             @click-playlist="(item) => emit('open', item)"
         />
     </section>

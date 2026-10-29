@@ -20,7 +20,7 @@
     "format:css": "prettier --write \"src/**/*.{css,scss,less}\"",
     "format:css:check": "prettier --check \"src/**/*.{css,scss,less}\"",
     "test:all": "npm run test:frontend && npm run test:rust && npm run test:monitor-http",
-    "test:frontend": "npm run build && npm run test:storage-recovery && npm run test:monitor-view && npm run test:task-focus && npm run test:playback && npm run test:platform-login",
+    "test:frontend": "npm run build && npm run test:storage-recovery && npm run test:monitor-view && npm run test:task-focus && npm run test:playback && npm run test:platform-login && npm run test:search-pagination",
     "test:rust": "npm run test:core && npm run test:server && npm run test:tauri && npm run test:crypto",
     "test:core": "cargo test --locked --workspace --manifest-path crates/hotdownloader-core/Cargo.toml",
     "test:server": "cargo test --locked --workspace --manifest-path crates/hotdownloader-server/Cargo.toml",
@@ -33,6 +33,7 @@
     "test:task-focus": "node --test scripts/task-focus.test.mjs",
     "test:playback": "node --test scripts/playback.test.mjs",
     "test:platform-login": "node --test scripts/platform-login.test.mjs",
+    "test:search-pagination": "node --test scripts/search-pagination.test.mjs",
     "generate:licenses": "node scripts/generate-licenses.mjs"
   },
   "dependencies": {

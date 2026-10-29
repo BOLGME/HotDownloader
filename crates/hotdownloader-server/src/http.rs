@@ -497,6 +497,7 @@ pub async fn handle(
                             &runtime.environment.artist_separator(),
                             runtime.login_store.as_ref(),
                             runtime.netease_store.as_ref(),
+                            runtime.kugou_store.as_ref(),
                         )
                         .await
                         {

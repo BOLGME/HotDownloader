@@ -171,6 +171,19 @@ try {
         await delay(50)
     }
     assert.ok(started, `Server did not start: ${stderr}`)
+    for (const action of ['playlists/created', 'playlists/created/fetch']) {
+        const response = await request(`/api/music/${action}`, 'POST', {
+            platform: 'kugou',
+            id: 'collection_3_123_1_0',
+            dirid: '0',
+            userid: '123',
+            token: 'client-supplied-token',
+        })
+        assert.equal(response.status, 400)
+        const result = await response.json()
+        assert.match(result.error, /请先登录酷狗/)
+        assert.ok(!JSON.stringify(result).includes('client-supplied-token'))
+    }
     assert.equal((await fetch(base + '/api/library')).status, 401)
     assert.equal((await request('/api/library/scan', 'POST')).status, 200)
     const library = await (await request('/api/library')).json()

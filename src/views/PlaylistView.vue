@@ -141,8 +141,9 @@ async function loadDetail(force = false) {
     }
     if (
         mine &&
-        (!['qqmusic', 'netease'].includes(platform) ||
-            !/^\d+$/.test(id) ||
+        (!(platform === 'kugou'
+            ? /^collection_\d+_\d+_\d+_\d+$/.test(id)
+            : ['qqmusic', 'netease'].includes(platform) && /^\d+$/.test(id)) ||
             typeof dirid !== 'string' ||
             !/^\d+$/.test(dirid))
     ) {

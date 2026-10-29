@@ -70,34 +70,37 @@
             <div v-if="searchLoading" class="loading-wrapper">
                 <n-spin size="medium" />
             </div>
+            <n-alert
+                v-if="searchError"
+                type="error"
+                :title="searchErrorTitle"
+                class="search-error"
+            >
+                {{ searchError }}
+                <n-button @click="retrySearch">重试</n-button>
+            </n-alert>
 
             <!-- 歌曲搜索结果列表 -->
             <SearchResultList
-                v-if="searchType === 'song' && songHasSearched && !songLoading"
+                v-if="
+                    searchType === 'song' &&
+                    songHasSearched &&
+                    !songLoading &&
+                    (!songError || songSearchResults.length)
+                "
                 :songs="songSearchResults"
                 v-model:selectedIds="songSelectedIds"
                 :has-more="songHasMore"
                 :loading-more="songLoadingMore"
                 @download="onSingleDownload"
                 @retry="handleSearch"
-                @load-more="loadMoreSongs"
+                @load-more="loadMoreSongsFunc"
                 @click-artist="openRelatedArtist"
                 @click-album="openSongAlbum"
             />
 
             <!-- 歌手搜索结果列表 -->
             <template v-else-if="searchType === 'artist'">
-                <n-alert v-if="artistError" type="error" title="歌手搜索失败">
-                    {{ artistError }}
-                    <n-button
-                        @click="
-                            artistSearchResults.length
-                                ? loadMoreArtists()
-                                : handleSearch()
-                        "
-                        >重试</n-button
-                    >
-                </n-alert>
                 <ArtistSearchResult
                     v-if="
                         artistHasSearched &&
@@ -116,22 +119,6 @@
 
             <!-- 专辑搜索结果列表 -->
             <template v-else-if="searchType === 'album'">
-                <n-alert
-                    v-if="albumError"
-                    type="error"
-                    title="专辑搜索失败"
-                    class="album-error"
-                >
-                    {{ albumError }}
-                    <n-button
-                        @click="
-                            albumSearchResults.length
-                                ? loadMoreAlbums()
-                                : handleSearch()
-                        "
-                        >重试</n-button
-                    >
-                </n-alert>
                 <AlbumSearchResult
                     v-if="
                         albumHasSearched &&
@@ -153,13 +140,14 @@
                 v-else-if="
                     searchType === 'playlist' &&
                     playlistHasSearched &&
-                    !playlistLoading
+                    !playlistLoading &&
+                    (!playlistError || playlistSearchResults.length)
                 "
                 :playlists="playlistSearchResults"
                 :has-more="playlistHasMore"
                 :loading-more="playlistLoadingMore"
                 @click-playlist="goToPlaylist"
-                @load-more="loadMorePlaylists"
+                @load-more="loadMorePlaylistFunc"
             />
 
             <!-- 批量下载栏（仅在歌曲搜索模式且有选中时显示） -->
@@ -220,6 +208,8 @@ const {
     hasSearched: songHasSearched,
     hasMore: songHasMore,
     loadingMore: songLoadingMore,
+    error: songError,
+    retry: retrySongs,
     searchSongs: searchSongFunc,
     loadMoreSongs: loadMoreSongsFunc,
     reset: resetSongSearch,
@@ -232,6 +222,8 @@ const {
     hasSearched: playlistHasSearched,
     hasMore: playlistHasMore,
     loadingMore: playlistLoadingMore,
+    error: playlistError,
+    retry: retryPlaylists,
     searchPlaylists: searchPlaylistFunc,
     loadMorePlaylists: loadMorePlaylistFunc,
     reset: resetPlaylistSearch,
@@ -244,6 +236,7 @@ const {
     hasSearched: albumHasSearched,
     hasMore: albumHasMore,
     error: albumError,
+    retry: retryAlbums,
     search: searchAlbumFunc,
     reset: resetAlbumSearch,
     loadMore: loadMoreAlbums,
@@ -255,6 +248,7 @@ const {
     hasSearched: artistHasSearched,
     hasMore: artistHasMore,
     error: artistError,
+    retry: retryArtists,
     search: searchArtistFunc,
     reset: resetArtistSearch,
     loadMore: loadMoreArtists,
@@ -277,6 +271,33 @@ const searchLoading = computed(
             playlist: playlistLoading.value,
         })[searchType.value],
 )
+const searchError = computed(
+    () =>
+        ({
+            song: songError.value,
+            artist: artistError.value,
+            album: albumError.value,
+            playlist: playlistError.value,
+        })[searchType.value],
+)
+const searchErrorTitle = computed(
+    () =>
+        ({
+            song: '歌曲搜索失败',
+            artist: '歌手搜索失败',
+            album: '专辑搜索失败',
+            playlist: '歌单搜索失败',
+        })[searchType.value],
+)
+
+function retrySearch() {
+    void {
+        song: retrySongs,
+        artist: retryArtists,
+        album: retryAlbums,
+        playlist: retryPlaylists,
+    }[searchType.value]()
+}
 
 // 历史与热搜
 const historyStore = useHistoryStore()
@@ -353,7 +374,11 @@ function onSuggestionSelect(word: string, type: keyof SearchSuggestionData) {
     handleSearch()
 }
 
-onBeforeUnmount(cancelSuggestions)
+onBeforeUnmount(() => {
+    cancelSuggestions()
+    resetSearches()
+    hotRequest++
+})
 
 function resetSearches() {
     resetSongSearch()
@@ -363,14 +388,18 @@ function resetSearches() {
 }
 
 // 获取热搜
+let hotRequest = 0
 async function fetchHotKeywords() {
+    const request = ++hotRequest
+    const platform = currentPlatform.value
     hotLoading.value = true
     try {
-        hotKeywords.value = await musicApi.getHotKeywords(currentPlatform.value)
+        const result = await musicApi.getHotKeywords(platform)
+        if (request === hotRequest) hotKeywords.value = result
     } catch {
-        hotKeywords.value = []
+        if (request === hotRequest) hotKeywords.value = []
     } finally {
-        hotLoading.value = false
+        if (request === hotRequest) hotLoading.value = false
     }
 }
 
@@ -445,16 +474,6 @@ async function handleSearch() {
     }
 }
 
-// 加载更多歌曲
-function loadMoreSongs() {
-    loadMoreSongsFunc(currentPlatform.value, keyword.value)
-}
-
-// 加载更多歌单
-function loadMorePlaylists() {
-    loadMorePlaylistFunc(currentPlatform.value, keyword.value)
-}
-
 // 记录搜索页的完整地址，歌单详情返回时才能恢复当前搜索结果。
 function goToPlaylist(pl: PlaylistSearchItem) {
     router.push({
@@ -521,5 +540,10 @@ function onBatchDownload() {
     display: flex;
     justify-content: center;
     padding: 40px 0;
+}
+
+.search-error {
+    margin-bottom: 16px;
+    overflow-wrap: anywhere;
 }
 </style>

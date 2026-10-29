@@ -64,7 +64,7 @@ pub async fn search_playlists(
     }
 }
 
-/// 读取当前 QQ 登录用户创建的歌单；UIN 从 Tauri 登录存储取得。
+/// 从各平台的 Tauri 登录存储读取当前账号歌单。
 #[command]
 pub async fn fetch_created_playlists(
     app: AppHandle,
@@ -82,6 +82,12 @@ pub async fn fetch_created_playlists(
             .await
         }
         Platform::QqMusic => {}
+        Platform::Kugou => {
+            return platforms::kugou::playlist::fetch_created_playlists(&super::login::kugou_store(
+                &app,
+            )?)
+            .await
+        }
         _ => return Err("该平台暂不支持个人歌单".into()),
     }
     crate::platforms::qqmusic::login::fetch_created_playlists(&app).await
@@ -109,6 +115,14 @@ pub async fn fetch_created_playlist_songs(
             .await
         }
         Platform::QqMusic => {}
+        Platform::Kugou => {
+            return platforms::kugou::playlist::fetch_created_playlist_songs(
+                &super::login::kugou_store(&app)?,
+                &get_artist_separator(&app),
+                id,
+            )
+            .await
+        }
         _ => return Err("该平台暂不支持个人歌单".into()),
     }
     let separator = get_artist_separator(&app);
