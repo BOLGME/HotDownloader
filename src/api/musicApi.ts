@@ -16,6 +16,7 @@ import type {
     LyricResponse,
 } from '../types'
 import { cachedInvoke } from './cachedInvoke'
+import { cachedQuery } from './queryCache'
 import { webRequest } from './webClient'
 
 const native = isTauri()
@@ -231,7 +232,10 @@ export async function checkNotificationPermission(): Promise<boolean> {
  */
 export function fetchCover(platform: string, songId: number): Promise<string> {
     if (!native) {
-        return musicCall('fetch_cover', 'cover', { platform, songId })
+        const args = { platform, songId }
+        return cachedQuery('fetch_cover', args, () =>
+            musicCall<string>('fetch_cover', 'cover', args),
+        )
     }
     return cachedInvoke<string>('fetch_cover', {
         platform,
