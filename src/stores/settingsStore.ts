@@ -10,6 +10,7 @@ type SettingKey = keyof Settings
 /** 这些字段由下载后端使用；网页版的路径只由服务启动环境决定。 */
 const SHARED_KEYS: SettingKey[] = [
     'autoDowngrade',
+    'autoRefreshLoginOnStartup',
     'qualityDowngradeOrder',
     'namingTemplate',
     'maxConcurrent',

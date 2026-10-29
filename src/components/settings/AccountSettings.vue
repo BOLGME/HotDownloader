@@ -8,6 +8,7 @@
             >
             <p>管理各平台的播放与下载账号</p>
         </header>
+        <StartupLoginSetting />
 
         <div class="platform-grid" role="group" aria-label="选择音乐平台">
             <button
@@ -63,16 +64,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import {
+    computed,
+    reactive,
+    ref,
+    watch,
+    onMounted,
+    onActivated,
+    onDeactivated,
+    onUnmounted,
+} from 'vue'
 import { useRoute } from 'vue-router'
 import { LOGIN_PLATFORMS } from '../../config/loginPlatforms'
 import { isLoginPlatform, type LoginPlatform } from '../../api/platformLoginApi'
 import PlatformLoginPanel from './PlatformLoginPanel.vue'
+import StartupLoginSetting from './StartupLoginSetting.vue'
+import { useAccountStore } from '../../stores/accountStore'
 
 const route = useRoute()
+const accountStore = useAccountStore()
 const selected = ref<LoginPlatform>('qqmusic')
 const statuses = reactive<
-    Record<LoginPlatform, 'checking' | 'connected' | 'disconnected' | 'unknown'>
+    Record<
+        LoginPlatform,
+        'checking' | 'connected' | 'disconnected' | 'unknown' | 'expired'
+    >
 >({ qqmusic: 'checking', kugou: 'checking', netease: 'checking' })
 const busy = reactive<Record<LoginPlatform, boolean>>({
     qqmusic: false,
@@ -84,6 +100,7 @@ const statusLabels = {
     connected: '已登录',
     disconnected: '未登录',
     unknown: '状态未知',
+    expired: '已失效',
 }
 const connectedCount = computed(
     () =>
@@ -98,6 +115,43 @@ watch(
     },
     { immediate: true },
 )
+
+// 账号页可被缓存，但在线状态不能成为缓存快照；仅在页面可见时定期校验。
+let active = false
+let pollGeneration = 0
+let timer: ReturnType<typeof setTimeout> | undefined
+async function poll(generation: number) {
+    if (document.visibilityState !== 'hidden') await accountStore.checkAll()
+    if (active && generation === pollGeneration)
+        timer = setTimeout(() => void poll(generation), 60000)
+}
+function activate() {
+    if (!active) {
+        active = true
+        void poll(++pollGeneration)
+    }
+}
+function deactivate() {
+    active = false
+    pollGeneration++
+    clearTimeout(timer)
+}
+function focus() {
+    if (active && document.visibilityState !== 'hidden')
+        void accountStore.checkAll()
+}
+onMounted(() => {
+    activate()
+    window.addEventListener('focus', focus)
+    document.addEventListener('visibilitychange', focus)
+})
+onActivated(activate)
+onDeactivated(deactivate)
+onUnmounted(() => {
+    deactivate()
+    window.removeEventListener('focus', focus)
+    document.removeEventListener('visibilitychange', focus)
+})
 </script>
 
 <style scoped>

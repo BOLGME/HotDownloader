@@ -21,6 +21,22 @@ impl TauriLoginStore {
 }
 
 impl LoginCredentialStore for TauriLoginStore {
+    fn save_if_current(&self, expected: &Value, next: &Value) -> Result<bool, String> {
+        let mut replaced = false;
+        store_wrapper::update_settings(&self.app, |previous| {
+            let current: Value = if previous.is_empty() {
+                serde_json::json!({})
+            } else {
+                serde_json::from_str(previous).map_err(|error| error.to_string())?
+            };
+            if !qq_login::credential_snapshot_matches(&current, expected) {
+                return Ok(previous.to_string());
+            }
+            replaced = true;
+            Ok(qq_login::merge_credentials(current, next)?.to_string())
+        })?;
+        Ok(replaced)
+    }
     fn load(&self) -> Result<Value, String> {
         // 旧客户端把整份 settings JSON 存在 Tauri Store 的 settings 键中。
         // 缺少键时按空设置处理；JSON 损坏应明确报错，避免覆盖其他设置。
@@ -65,6 +81,22 @@ impl LoginCredentialStore for TauriLoginStore {
         })?;
         Ok(())
     }
+}
+
+/// 使用应用 Store 提供凭据；校验与刷新策略由核心处理。
+pub(crate) async fn check_platform_login(
+    app: &AppHandle,
+    platform: hotdownloader_core::platforms::Platform,
+    refresh: bool,
+) -> Result<hotdownloader_core::platforms::login_status::AccountStatus, String> {
+    hotdownloader_core::platforms::login_status::check(
+        platform,
+        refresh,
+        &TauriLoginStore::new(app),
+        &crate::commands::api::login::netease_store(app)?,
+        &crate::commands::api::login::kugou_store(app)?,
+    )
+    .await
 }
 
 /// 使用应用 Store 提供凭据；校验与刷新策略由核心处理。

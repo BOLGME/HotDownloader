@@ -171,6 +171,46 @@ try {
         await delay(50)
     }
     assert.ok(started, `Server did not start: ${stderr}`)
+    assert.equal(
+        (
+            await fetch(base + '/api/login/session', {
+                method: 'POST',
+                body: JSON.stringify({ platform: 'qqmusic', refresh: true }),
+            })
+        ).status,
+        401,
+    )
+    for (const platform of ['qqmusic', 'kugou', 'netease']) {
+        for (const refresh of [false, true]) {
+            const response = await request('/api/login/session', 'POST', {
+                platform,
+                refresh,
+                token: 'client-supplied-token',
+            })
+            assert.equal(response.status, 200)
+            assert.deepEqual(await response.json(), {
+                loggedIn: false,
+                userId: '',
+                nickname: '',
+                expired: false,
+                message: '',
+            })
+        }
+    }
+    const loginSetting = await request('/api/settings', 'PATCH', {
+        changes: { autoRefreshLoginOnStartup: false },
+        expected: { autoRefreshLoginOnStartup: null },
+    })
+    assert.equal(loginSetting.status, 200)
+    assert.equal(
+        (await loginSetting.json()).settings.autoRefreshLoginOnStartup,
+        false,
+    )
+    assert.equal(
+        (await (await request('/api/settings')).json()).settings
+            .autoRefreshLoginOnStartup,
+        false,
+    )
     for (const action of ['playlists/created', 'playlists/created/fetch']) {
         const response = await request(`/api/music/${action}`, 'POST', {
             platform: 'kugou',

@@ -1,6 +1,7 @@
 import * as musicApi from './musicApi'
 import { kugouLogin, type KugouLoginResult } from './kugouLogin'
 import { neteaseLogin, type NeteaseLoginResult } from './neteaseLogin'
+import { checkAccountStatus } from './accountStatusApi'
 
 export type LoginPlatform = 'qqmusic' | 'kugou' | 'netease'
 export type QrStatus = musicApi.LoginCheckResult['status']
@@ -14,6 +15,8 @@ export interface AccountStatus {
     loggedIn: boolean
     userId: string
     nickname: string
+    expired?: boolean
+    message?: string
 }
 
 export interface LoginAdapter {
@@ -43,9 +46,9 @@ export function getLoginAdapter(platform: LoginPlatform): LoginAdapter {
         })
         return {
             async status() {
-                const result = await musicApi.getLoginStatus(platform)
-                return { ...fromQq(result.uin), loggedIn: result.logged_in }
+                return checkAccountStatus(platform)
             },
+            refresh: () => checkAccountStatus(platform, true),
             async createQr() {
                 const result = await musicApi.createQrLogin(platform)
                 return {
@@ -84,7 +87,7 @@ export function getLoginAdapter(platform: LoginPlatform): LoginAdapter {
     // 两个平台的原生 IPC 和 Web 路由由已有 API 分别处理。
     const api = platform === 'netease' ? neteaseLogin : kugouLogin
     return {
-        status: async () => account(await api('status')),
+        status: () => checkAccountStatus(platform),
         async createQr() {
             const result = await api('qr')
             return { id: result.qrcode_id ?? '', image: result.qr_image ?? '' }
@@ -116,7 +119,7 @@ export function getLoginAdapter(platform: LoginPlatform): LoginAdapter {
         },
         refresh:
             platform === 'netease'
-                ? async () => account(await neteaseLogin('refresh'))
+                ? () => checkAccountStatus(platform, true)
                 : undefined,
     }
 }

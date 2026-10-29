@@ -37,13 +37,15 @@ import { useRoute, useRouter } from 'vue-router'
 import { NAlert, NButton, NEmpty, NSpin } from 'naive-ui'
 import PlaylistSearchResult from '../search/PlaylistSearchResult.vue'
 import * as musicApi from '../../api/musicApi'
-import { getLoginAdapter, isLoginPlatform } from '../../api/platformLoginApi'
+import { isLoginPlatform } from '../../api/platformLoginApi'
+import { useAccountStore } from '../../stores/accountStore'
 import type { PlaylistSearchItem } from '../../types'
 
 const props = defineProps<{ platform: string; name: string }>()
 const emit = defineEmits<{ (e: 'open', item: PlaylistSearchItem): void }>()
 const router = useRouter()
 const route = useRoute()
+const accounts = useAccountStore()
 const loggedIn = ref(false)
 const playlists = ref<PlaylistSearchItem[]>([])
 const loading = ref(false)
@@ -60,9 +62,14 @@ async function refresh() {
             playlists.value = []
             return
         }
-        const status = await getLoginAdapter(props.platform).status()
+        const session = accounts.sessions[props.platform]
+        await session.whenIdle()
         if (current !== requestId) return
-        loggedIn.value = status.loggedIn
+        await session.checkStatus()
+        if (!session.statusKnown)
+            throw new Error(session.error || '登录状态检查失败')
+        if (current !== requestId) return
+        loggedIn.value = session.loggedIn
         if (!loggedIn.value) {
             playlists.value = []
             return

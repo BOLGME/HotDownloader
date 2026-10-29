@@ -129,7 +129,9 @@ fn validate_field(
     scope: SettingsScope,
 ) -> Result<(), SettingsPatchError> {
     let valid = match field {
-        "autoDowngrade" | "writeMetadata" | "downloadLrc" => value.is_boolean(),
+        "autoDowngrade" | "writeMetadata" | "downloadLrc" | "autoRefreshLoginOnStartup" => {
+            value.is_boolean()
+        }
         "coverQuality" => matches!(value.as_str(), Some("source" | "500" | "original")),
         "maxConcurrent" => matches!(value.as_u64(), Some(1..=32)),
         "defaultQuality" => value

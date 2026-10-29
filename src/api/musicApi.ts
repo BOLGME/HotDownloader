@@ -18,6 +18,7 @@ import type {
 import { cachedInvoke } from './cachedInvoke'
 import { cachedQuery } from './queryCache'
 import { webRequest } from './webClient'
+import { reportAccountError } from './accountEvents'
 
 const native = isTauri()
 
@@ -27,13 +28,19 @@ async function musicCall<T>(
     action: string,
     args: Record<string, unknown>,
 ): Promise<T> {
-    if (native) {
-        return JSON.parse(await invoke<string>(command, args)) as T
+    try {
+        if (native) {
+            return JSON.parse(await invoke<string>(command, args)) as T
+        }
+        return await webRequest<T>(`/api/music/${action}`, {
+            method: 'POST',
+            body: JSON.stringify(args),
+        })
+    } catch (error) {
+        if (typeof args.platform === 'string')
+            reportAccountError(args.platform, error)
+        throw error
     }
-    return webRequest<T>(`/api/music/${action}`, {
-        method: 'POST',
-        body: JSON.stringify(args),
-    })
 }
 
 export async function searchSongs(
