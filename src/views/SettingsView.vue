@@ -126,6 +126,7 @@ const settingsStore = useSettingsStore()
 const settingLabels: Partial<Record<keyof Settings, string>> = {
     defaultQuality: '默认音质',
     autoDowngrade: '自动降级',
+    autoRefreshLoginOnStartup: '启动时检查并尝试续期登录',
     qualityDowngradeOrder: '音质降级顺序',
     downloadDir: '下载目录',
     namingTemplate: '文件命名规则',

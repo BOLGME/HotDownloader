@@ -23,6 +23,11 @@
             @open="(item) => emit('open-my', item)"
         />
         <MyPlaylists
+            platform="kugou"
+            name="酷狗音乐"
+            @open="(item) => emit('open-my', item)"
+        />
+        <MyPlaylists
             platform="netease"
             name="网易云音乐"
             @open="(item) => emit('open-my', item)"

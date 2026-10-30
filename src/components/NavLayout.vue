@@ -31,9 +31,18 @@
             >
                 <router-view v-slot="{ Component }">
                     <!-- 每个详情独立缓存，返回时恢复其分页、标签与勾选。 -->
-                    <keep-alive>
-                        <component :is="Component" :key="viewKey" />
+                    <keep-alive :max="MAX_CACHED_VIEWS">
+                        <component
+                            v-if="route.meta.keepAlive === true"
+                            :is="Component"
+                            :key="viewKey"
+                        />
                     </keep-alive>
+                    <component
+                        v-if="route.meta.keepAlive !== true"
+                        :is="Component"
+                        :key="viewKey"
+                    />
                 </router-view>
             </main>
             <PlaybackBar />
@@ -64,6 +73,12 @@ import { showStorageRecoveryReport } from '../api/storageRecovery'
 import { useTaskStore } from '../stores/taskStore'
 import PlaybackBar from './PlaybackBar.vue'
 import { usePlayerStore } from '../stores/playerStore'
+import { useAccountStore } from '../stores/accountStore'
+import {
+    MAX_CACHED_VIEWS,
+    createViewScrollCache,
+    viewCacheKey,
+} from '../utils/viewCache'
 
 const router = useRouter()
 const route = useRoute()
@@ -84,23 +99,26 @@ const lastResponseLabel = computed(() =>
         ? new Date(taskStore.lastServerActivityAt).toLocaleTimeString()
         : '尚未收到响应',
 )
-const viewKey = computed(() => {
-    return ['/artist', '/album'].includes(route.path)
-        ? route.fullPath
-        : route.path
-})
+const viewKey = computed(() => viewCacheKey(route))
 
 // 保存各路由页面的滚动位置，实现独立滚动记录
 const mainContentRef = ref<HTMLElement | null>(null)
-const scrollPositions: Record<string, number> = {}
+const scrollPositions = createViewScrollCache()
+let scrollRequest = 0
 
 let removeRouteGuard: (() => void) | null = null
 
 // 恢复指定路由的滚动位置
 async function restoreScrollPosition(path: string) {
+    const current = ++scrollRequest
+    const position = scrollPositions.activate(route)
     await nextTick()
-    if (mainContentRef.value) {
-        mainContentRef.value.scrollTop = scrollPositions[path] ?? 0
+    if (
+        mainContentRef.value &&
+        current === scrollRequest &&
+        route.fullPath === path
+    ) {
+        mainContentRef.value.scrollTop = position
     }
 }
 
@@ -118,6 +136,21 @@ useCloseGuard()
 // 挂载通知实例到全局，供 store 使用
 const notification = useNotification()
 window.$notify = notification
+const accounts = useAccountStore()
+// 原生启动检查可能先于通知容器完成；由应用布局消费待提示消息，避免首屏丢提示。
+watch(
+    () => accounts.startupWarnings.slice(),
+    (messages) => {
+        if (!messages.length) return
+        for (const description of accounts.takeStartupWarnings())
+            notification.warning({
+                title: '账号登录需处理',
+                description,
+                duration: 8000,
+            })
+    },
+    { immediate: true },
+)
 
 // 移动端响应式布局状态；公共方法统一断点，并在组件销毁时清理监听。
 const isNarrow = useNarrowLayout()
@@ -127,7 +160,7 @@ onMounted(() => {
     // 注册全局前置守卫，在离开当前路由前保存滚动位置
     removeRouteGuard = router.beforeEach((_to, from) => {
         if (mainContentRef.value) {
-            scrollPositions[from.fullPath] = mainContentRef.value.scrollTop
+            scrollPositions.remember(from, mainContentRef.value.scrollTop)
         }
     })
     // 初始恢复当前路由的滚动位置（如果有保存过）

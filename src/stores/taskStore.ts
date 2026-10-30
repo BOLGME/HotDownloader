@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { isNativeRuntime } from '../api/runtimeApi'
 import { taskTransport } from '../api/taskTransport'
 import { useSettingsStore } from './settingsStore'
+import { reportAccountError } from '../api/accountEvents'
 import type { BatchTaskResult } from '../api/taskTransport'
 import type {
     SongInfo,
@@ -169,6 +170,10 @@ export const useTaskStore = defineStore('tasks', () => {
                                 duration: 3000,
                             })
                         } else if (task.status === 'error') {
+                            reportAccountError(
+                                task.platform,
+                                task.errorMsg || '',
+                            )
                             window.$notify?.error({
                                 title: '下载失败',
                                 description: `歌曲“${task.songTitle}”错误：${(task.errorMsg || '').slice(0, 100)}`,
@@ -193,6 +198,7 @@ export const useTaskStore = defineStore('tasks', () => {
                 })
             },
             loginRefreshFailed(message) {
+                reportAccountError('qqmusic', 'QQ 音乐登录已失效')
                 window.$notify?.error({
                     title: '登录刷新失败，请重新登录',
                     description: message,

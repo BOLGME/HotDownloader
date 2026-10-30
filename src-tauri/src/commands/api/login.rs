@@ -58,6 +58,16 @@ pub async fn kugou_login(
 /// 平台暂未实现登录功能时返回的统一错误消息
 const UNSUPPORTED_LOGIN: &str = "该平台暂不支持登录";
 
+/// 仅返回可展示的在线状态；凭据读取、验证与续期均在共享核心执行。
+#[command]
+pub async fn check_platform_login(
+    app: AppHandle,
+    platform: String,
+    refresh: bool,
+) -> Result<hotdownloader_core::platforms::login_status::AccountStatus, String> {
+    crate::platforms::qqmusic::login::check_platform_login(&app, platform.parse()?, refresh).await
+}
+
 /// 手动登录的 IPC 载荷；可选令牌保留现有前端字段名。
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]

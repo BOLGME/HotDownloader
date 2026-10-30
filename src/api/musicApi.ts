@@ -16,7 +16,9 @@ import type {
     LyricResponse,
 } from '../types'
 import { cachedInvoke } from './cachedInvoke'
+import { cachedQuery } from './queryCache'
 import { webRequest } from './webClient'
+import { reportAccountError } from './accountEvents'
 
 const native = isTauri()
 
@@ -26,13 +28,19 @@ async function musicCall<T>(
     action: string,
     args: Record<string, unknown>,
 ): Promise<T> {
-    if (native) {
-        return JSON.parse(await invoke<string>(command, args)) as T
+    try {
+        if (native) {
+            return JSON.parse(await invoke<string>(command, args)) as T
+        }
+        return await webRequest<T>(`/api/music/${action}`, {
+            method: 'POST',
+            body: JSON.stringify(args),
+        })
+    } catch (error) {
+        if (typeof args.platform === 'string')
+            reportAccountError(args.platform, error)
+        throw error
     }
-    return webRequest<T>(`/api/music/${action}`, {
-        method: 'POST',
-        body: JSON.stringify(args),
-    })
 }
 
 export async function searchSongs(
@@ -231,7 +239,10 @@ export async function checkNotificationPermission(): Promise<boolean> {
  */
 export function fetchCover(platform: string, songId: number): Promise<string> {
     if (!native) {
-        return musicCall('fetch_cover', 'cover', { platform, songId })
+        const args = { platform, songId }
+        return cachedQuery('fetch_cover', args, () =>
+            musicCall<string>('fetch_cover', 'cover', args),
+        )
     }
     return cachedInvoke<string>('fetch_cover', {
         platform,

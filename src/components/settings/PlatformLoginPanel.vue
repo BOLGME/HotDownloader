@@ -12,6 +12,13 @@
         >
             {{ error }}
             <div class="error-actions">
+                <n-button
+                    v-if="statusKnown && account.expired && adapter.refresh"
+                    size="small"
+                    :disabled="busy"
+                    @click="refresh"
+                    >尝试续期</n-button
+                >
                 <n-button size="small" :disabled="busy" @click="checkStatus"
                     >重新检查状态</n-button
                 >
@@ -175,6 +182,7 @@ import {
     onUnmounted,
     ref,
     watch,
+    toRefs,
 } from 'vue'
 import {
     NAlert,
@@ -186,16 +194,19 @@ import {
 } from 'naive-ui'
 import { getLoginAdapter, type LoginValues } from '../../api/platformLoginApi'
 import type { LoginPlatformConfig } from '../../config/loginPlatforms'
-import { usePlatformLogin } from '../../composables/usePlatformLogin'
 import LoginCredentialFields from './LoginCredentialFields.vue'
+import { useAccountStore } from '../../stores/accountStore'
 
 const props = defineProps<{ platform: LoginPlatformConfig; active: boolean }>()
 const emit = defineEmits<{
-    status: [status: 'checking' | 'connected' | 'disconnected' | 'unknown']
+    status: [
+        status:
+            'checking' | 'connected' | 'disconnected' | 'unknown' | 'expired',
+    ]
     busy: [busy: boolean]
 }>()
 const adapter = getLoginAdapter(props.platform.key)
-const login = usePlatformLogin(adapter)
+const login = useAccountStore().sessions[props.platform.key]
 const {
     account,
     checking,
@@ -205,10 +216,10 @@ const {
     qrImage,
     qrStatus,
     loggedIn,
-    checkStatus,
-    createQr,
-    refresh,
-} = login
+} = toRefs(login)
+const checkStatus = () => login.checkStatus()
+const createQr = () => login.createQr()
+const refresh = () => login.refresh()
 const method = ref('qr')
 const values = ref<LoginValues>({})
 const imageFailed = ref(false)
@@ -261,11 +272,11 @@ watch(
     () => props.active,
     (active) => {
         if (active) void checkStatus()
-        else login.suspend()
+        else login.cancelQr()
     },
 )
 watch(
-    [checking, statusKnown, loggedIn, error],
+    [checking, statusKnown, loggedIn, error, () => account.value.expired],
     () => {
         emit(
             'status',
@@ -275,7 +286,9 @@ watch(
                   ? 'unknown'
                   : loggedIn.value
                     ? 'connected'
-                    : 'disconnected',
+                    : account.value.expired
+                      ? 'expired'
+                      : 'disconnected',
         )
     },
     { immediate: true },
@@ -293,10 +306,10 @@ onActivated(() => {
 })
 onDeactivated(() => {
     suspended = true
-    login.suspend()
+    login.cancelQr()
 })
 onUnmounted(() => {
-    login.dispose()
+    login.cancelQr()
     values.value = {}
 })
 </script>

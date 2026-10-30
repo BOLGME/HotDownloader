@@ -8,6 +8,7 @@ import { isNativeRuntime } from '../api/runtimeApi'
 const routes: RouteRecordRaw[] = [
     {
         path: '/playlist/monitors',
+        meta: { keepAlive: true },
         component: () => import('../views/MonitorView.vue'),
         beforeEnter: () => (isNativeRuntime() ? '/playlist' : true),
     },
@@ -24,11 +25,13 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/artist',
         name: 'artist',
+        meta: { keepAlive: true },
         component: () => import('../views/ArtistView.vue'),
     },
     {
         path: '/album',
         name: 'album',
+        meta: { keepAlive: true },
         component: () => import('../views/AlbumView.vue'),
     },
     {

@@ -1,4 +1,10 @@
 import { invoke } from '@tauri-apps/api/core'
+import {
+    cachedQuery,
+    clearQueryCache,
+    clearQueryCacheByGroup,
+    type QueryCacheOptions,
+} from './queryCache'
 
 /**
  * API 层的幂等命令调用缓存，提供：
@@ -9,64 +15,29 @@ import { invoke } from '@tauri-apps/api/core'
  * 不要用于有副作用的命令（如添加任务、修改设置）。
  */
 
-interface CacheEntry<T> {
-    promise: Promise<T>
-    timestamp: number
-}
-
-const cache = new Map<string, CacheEntry<unknown>>()
-
-/** 默认缓存有效期 5 分钟 */
-const DEFAULT_TTL_MS = 5 * 60 * 1000
-
 /**
  * 调用 Tauri 命令并自动缓存结果。
  *
  * @param command Tauri 命令名
  * @param args 命令参数
- * @param options.ttlMs 缓存有效期（毫秒），默认 5 分钟
- * @param options.key 自定义缓存键（默认用 JSON 序列化的 args）
+ * @param options.ttlMs 成功返回后的缓存有效期（毫秒），默认 5 分钟；0 仅合并在途请求。
+ * @param options.key 命令组内的自定义缓存键（默认用 JSON 序列化的 args）。
  * @returns 命令返回结果
  */
 export function cachedInvoke<T>(
     command: string,
     args?: Record<string, unknown>,
-    options: { ttlMs?: number; key?: string } = {},
+    options: QueryCacheOptions = {},
 ): Promise<T> {
-    const { ttlMs = DEFAULT_TTL_MS, key } = options
-    const cacheKey = key ?? `${command}:${JSON.stringify(args ?? {})}`
-
-    const now = Date.now()
-    const cached = cache.get(cacheKey)
-    if (cached && now - cached.timestamp < ttlMs) {
-        return cached.promise as Promise<T>
-    }
-
-    // 已有的 in-flight 请求直接复用，避免并发触发
-    if (cached) {
-        // 过期但仍在飞行中，复用旧 Promise（避免重复请求）
-        return cached.promise as Promise<T>
-    }
-
-    const promise = invoke<T>(command, args) as Promise<T>
-    cache.set(cacheKey, { promise, timestamp: now })
-
-    // 请求失败时清除缓存，允许后续重试
-    promise.catch(() => cache.delete(cacheKey))
-
-    return promise
+    return cachedQuery(command, args, () => invoke<T>(command, args), options)
 }
 
-/** 清除全部缓存（用于登出、切换账号等场景） */
+/** 清除 Web 与 Tauri 的全部只读缓存；保留原有调用入口。 */
 export function clearInvokeCache(): void {
-    cache.clear()
+    clearQueryCache()
 }
 
-/** 清除指定命令的缓存 */
+/** 清除指定业务命令组的缓存，包括使用自定义键的条目。 */
 export function clearInvokeCacheByCommand(command: string): void {
-    for (const key of cache.keys()) {
-        if (key.startsWith(`${command}:`)) {
-            cache.delete(key)
-        }
-    }
+    clearQueryCacheByGroup(command)
 }

@@ -42,6 +42,7 @@ pub async fn execute(
     artist_separator: &str,
     login_store: &dyn LoginCredentialStore,
     netease_store: &platforms::netease::login::Store,
+    kugou_store: &platforms::kugou::login::Store,
 ) -> Result<Value, String> {
     let platform = request.platform.parse::<Platform>()?;
     if request.page == 0 || request.limit == 0 || request.limit > 100 {
@@ -53,6 +54,17 @@ pub async fn execute(
         String::new()
     };
     let result = match (platform, action) {
+        (Platform::Kugou, "playlists/created") => {
+            platforms::kugou::playlist::fetch_created_playlists(kugou_store).await?
+        }
+        (Platform::Kugou, "playlists/created/fetch") => {
+            platforms::kugou::playlist::fetch_created_playlist_songs(
+                kugou_store,
+                artist_separator,
+                request.id,
+            )
+            .await?
+        }
         (Platform::Netease, "songs/search") => {
             platforms::netease::search::search_songs(
                 artist_separator,

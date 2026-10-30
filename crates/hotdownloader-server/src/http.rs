@@ -497,6 +497,7 @@ pub async fn handle(
                             &runtime.environment.artist_separator(),
                             runtime.login_store.as_ref(),
                             runtime.netease_store.as_ref(),
+                            runtime.kugou_store.as_ref(),
                         )
                         .await
                         {
@@ -565,6 +566,34 @@ pub async fn handle(
         (Method::GET, "/api/login/status") => {
             let result = qq_login::get_login_status(runtime.login_store.as_ref()).await;
             legacy_json_result(result)
+        }
+        (Method::POST, "/api/login/session") => {
+            #[derive(Deserialize)]
+            struct Input {
+                platform: String,
+                #[serde(default)]
+                refresh: bool,
+            }
+            match read_json(request).await.and_then(|value| {
+                serde_json::from_value::<Input>(value).map_err(|error| error.to_string())
+            }) {
+                Ok(input) => match input.platform.parse() {
+                    Ok(platform) => match hotdownloader_core::platforms::login_status::check(
+                        platform,
+                        input.refresh,
+                        runtime.login_store.as_ref(),
+                        runtime.netease_store.as_ref(),
+                        runtime.kugou_store.as_ref(),
+                    )
+                    .await
+                    {
+                        Ok(status) => json_response(StatusCode::OK, json!(status)),
+                        Err(error) => error_response(StatusCode::BAD_REQUEST, error),
+                    },
+                    Err(error) => error_response(StatusCode::BAD_REQUEST, error),
+                },
+                Err(error) => error_response(StatusCode::BAD_REQUEST, error),
+            }
         }
         (Method::POST, "/api/login/qr") => {
             let store: Arc<dyn LoginCredentialStore> = runtime.login_store.clone();

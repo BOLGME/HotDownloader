@@ -6,7 +6,7 @@
             {{ error }} <n-button @click="refresh">重试</n-button>
         </n-alert>
         <div v-else-if="!loggedIn" class="placeholder">
-            <n-empty :description="`登录${name}后即可查看自己创建的歌单`">
+            <n-empty :description="`登录${name}后即可查看账号歌单`">
                 <template #extra
                     ><n-button
                         @click="
@@ -25,7 +25,7 @@
             :playlists="playlists"
             :has-more="false"
             :loading-more="false"
-            empty-description="暂无自己创建的歌单"
+            empty-description="暂无歌单"
             @click-playlist="(item) => emit('open', item)"
         />
     </section>
@@ -37,13 +37,15 @@ import { useRoute, useRouter } from 'vue-router'
 import { NAlert, NButton, NEmpty, NSpin } from 'naive-ui'
 import PlaylistSearchResult from '../search/PlaylistSearchResult.vue'
 import * as musicApi from '../../api/musicApi'
-import { getLoginAdapter, isLoginPlatform } from '../../api/platformLoginApi'
+import { isLoginPlatform } from '../../api/platformLoginApi'
+import { useAccountStore } from '../../stores/accountStore'
 import type { PlaylistSearchItem } from '../../types'
 
 const props = defineProps<{ platform: string; name: string }>()
 const emit = defineEmits<{ (e: 'open', item: PlaylistSearchItem): void }>()
 const router = useRouter()
 const route = useRoute()
+const accounts = useAccountStore()
 const loggedIn = ref(false)
 const playlists = ref<PlaylistSearchItem[]>([])
 const loading = ref(false)
@@ -60,9 +62,14 @@ async function refresh() {
             playlists.value = []
             return
         }
-        const status = await getLoginAdapter(props.platform).status()
+        const session = accounts.sessions[props.platform]
+        await session.whenIdle()
         if (current !== requestId) return
-        loggedIn.value = status.loggedIn
+        await session.checkStatus()
+        if (!session.statusKnown)
+            throw new Error(session.error || '登录状态检查失败')
+        if (current !== requestId) return
+        loggedIn.value = session.loggedIn
         if (!loggedIn.value) {
             playlists.value = []
             return

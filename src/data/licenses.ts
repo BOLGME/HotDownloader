@@ -141,12 +141,12 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "aws-lc-rs",
-        "version": "1.18.2",
+        "version": "1.19.0",
         "license": "ISC AND (Apache-2.0 OR ISC)"
     },
     {
         "name": "aws-lc-sys",
-        "version": "0.46.0",
+        "version": "0.47.0",
         "license": "ISC AND (Apache-2.0 OR ISC) AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR ISC OR MIT) AND (Apache-2.0 OR ISC OR MIT-0)"
     },
     {
@@ -201,12 +201,12 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "brotli",
-        "version": "9.0.0",
+        "version": "9.1.1",
         "license": "BSD-3-Clause AND MIT"
     },
     {
         "name": "brotli-decompressor",
-        "version": "6.0.1",
+        "version": "6.2.0",
         "license": "BSD-3-Clause OR MIT"
     },
     {
@@ -581,7 +581,7 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "erased-serde",
-        "version": "0.4.10",
+        "version": "0.4.11",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -1381,7 +1381,7 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "openssl-probe",
-        "version": "0.2.1",
+        "version": "0.2.2",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -1671,7 +1671,7 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "rfd",
-        "version": "0.16.1",
+        "version": "0.17.2",
         "license": "MIT"
     },
     {
@@ -1696,7 +1696,7 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "rustix",
-        "version": "1.1.5",
+        "version": "1.1.6",
         "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
     },
     {
@@ -2061,7 +2061,7 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "tauri-plugin-dialog",
-        "version": "2.8.3",
+        "version": "2.8.4",
         "license": "Apache-2.0 OR MIT"
     },
     {
@@ -2076,7 +2076,7 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "tauri-plugin-notification",
-        "version": "2.7.0",
+        "version": "2.8.0",
         "license": "Apache-2.0 OR MIT"
     },
     {
@@ -2530,11 +2530,6 @@ export const rustComponents: ComponentInfo[] = [
         "license": "MIT OR Apache-2.0"
     },
     {
-        "name": "windows_aarch64_gnullvm",
-        "version": "0.53.1",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
         "name": "windows_aarch64_msvc",
         "version": "0.42.2",
         "license": "MIT OR Apache-2.0"
@@ -2545,11 +2540,6 @@ export const rustComponents: ComponentInfo[] = [
         "license": "MIT OR Apache-2.0"
     },
     {
-        "name": "windows_aarch64_msvc",
-        "version": "0.53.1",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
         "name": "windows_i686_gnu",
         "version": "0.42.2",
         "license": "MIT OR Apache-2.0"
@@ -2557,11 +2547,6 @@ export const rustComponents: ComponentInfo[] = [
     {
         "name": "windows_i686_gnu",
         "version": "0.52.6",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
-        "name": "windows_i686_gnu",
-        "version": "0.53.1",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -2570,11 +2555,6 @@ export const rustComponents: ComponentInfo[] = [
         "license": "MIT OR Apache-2.0"
     },
     {
-        "name": "windows_i686_gnullvm",
-        "version": "0.53.1",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
         "name": "windows_i686_msvc",
         "version": "0.42.2",
         "license": "MIT OR Apache-2.0"
@@ -2582,11 +2562,6 @@ export const rustComponents: ComponentInfo[] = [
     {
         "name": "windows_i686_msvc",
         "version": "0.52.6",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
-        "name": "windows_i686_msvc",
-        "version": "0.53.1",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -2600,11 +2575,6 @@ export const rustComponents: ComponentInfo[] = [
         "license": "MIT OR Apache-2.0"
     },
     {
-        "name": "windows_x86_64_gnu",
-        "version": "0.53.1",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
         "name": "windows_x86_64_gnullvm",
         "version": "0.42.2",
         "license": "MIT OR Apache-2.0"
@@ -2615,11 +2585,6 @@ export const rustComponents: ComponentInfo[] = [
         "license": "MIT OR Apache-2.0"
     },
     {
-        "name": "windows_x86_64_gnullvm",
-        "version": "0.53.1",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
         "name": "windows_x86_64_msvc",
         "version": "0.42.2",
         "license": "MIT OR Apache-2.0"
@@ -2627,11 +2592,6 @@ export const rustComponents: ComponentInfo[] = [
     {
         "name": "windows_x86_64_msvc",
         "version": "0.52.6",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
-        "name": "windows_x86_64_msvc",
-        "version": "0.53.1",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -2691,11 +2651,6 @@ export const rustComponents: ComponentInfo[] = [
     },
     {
         "name": "windows-sys",
-        "version": "0.60.2",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
-        "name": "windows-sys",
         "version": "0.61.2",
         "license": "MIT OR Apache-2.0"
     },
@@ -2707,11 +2662,6 @@ export const rustComponents: ComponentInfo[] = [
     {
         "name": "windows-targets",
         "version": "0.52.6",
-        "license": "MIT OR Apache-2.0"
-    },
-    {
-        "name": "windows-targets",
-        "version": "0.53.5",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -2954,12 +2904,12 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "@oxc-project/types",
-        "version": "0.155.0",
+        "version": "0.156.0",
         "license": "MIT"
     },
     {
         "name": "@rolldown/binding-win32-x64-msvc",
-        "version": "1.2.15",
+        "version": "1.2.16",
         "license": "MIT"
     },
     {
@@ -2979,7 +2929,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "@tauri-apps/plugin-dialog",
-        "version": "2.8.3",
+        "version": "2.8.4",
         "license": "MIT OR Apache-2.0"
     },
     {
@@ -2994,7 +2944,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "@types/estree",
-        "version": "1.0.9",
+        "version": "1.0.10",
         "license": "MIT"
     },
     {
@@ -3134,7 +3084,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "confbox",
-        "version": "0.3.1",
+        "version": "0.3.2",
         "license": "MIT"
     },
     {
@@ -3199,7 +3149,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "exsolve",
-        "version": "1.1.3",
+        "version": "1.2.0",
         "license": "MIT"
     },
     {
@@ -3249,7 +3199,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "magic-string",
-        "version": "1.4.3",
+        "version": "1.4.5",
         "license": "MIT"
     },
     {
@@ -3259,7 +3209,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "marked",
-        "version": "18.1.1",
+        "version": "18.1.2",
         "license": "MIT"
     },
     {
@@ -3324,7 +3274,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "postcss",
-        "version": "8.5.31",
+        "version": "8.5.32",
         "license": "MIT"
     },
     {
@@ -3344,7 +3294,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "rolldown",
-        "version": "1.2.15",
+        "version": "1.2.16",
         "license": "MIT"
     },
     {
@@ -3409,7 +3359,7 @@ export const frontendComponents: ComponentInfo[] = [
     },
     {
         "name": "unplugin",
-        "version": "3.4.0",
+        "version": "3.7.0",
         "license": "MIT"
     },
     {

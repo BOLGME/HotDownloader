@@ -85,6 +85,8 @@ export type TaskStatus =
 export interface Settings {
     defaultQuality: Quality
     autoDowngrade: boolean
+    /** 应用启动后在线检查已保存账号，并在平台支持时尝试续期。 */
+    autoRefreshLoginOnStartup: boolean
     /** 用户定义的降级尝试顺序；排在目标音质之后的项目才会被依次尝试。 */
     qualityDowngradeOrder: Quality[]
     downloadDir: string
@@ -306,6 +308,7 @@ export interface DownloadLinkExpiredPayload {
 export const DEFAULT_SETTINGS: Settings = {
     defaultQuality: 'ask',
     autoDowngrade: true,
+    autoRefreshLoginOnStartup: true,
     // 必须克隆默认数组，避免设置页排序时意外修改全局常量。
     qualityDowngradeOrder: [...QUALITY_DOWNGRADE_ORDER],
     downloadDir: '',

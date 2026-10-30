@@ -7,7 +7,10 @@ import type {
 } from '../api/platformLoginApi'
 
 /** 每个平台一份状态；串行轮询并丢弃过期响应，生命周期由宿主组件控制。 */
-export function usePlatformLogin(adapter: LoginAdapter) {
+export function usePlatformLogin(
+    adapter: LoginAdapter,
+    options: { verifyAfterLogin?: boolean } = {},
+) {
     const account = ref<AccountStatus>({
         loggedIn: false,
         userId: '',
@@ -22,6 +25,8 @@ export function usePlatformLogin(adapter: LoginAdapter) {
     let timer: ReturnType<typeof setTimeout> | undefined
     let generation = 0
     let disposed = false
+    let activeRun: Promise<void> = Promise.resolve()
+    let actionKind = ''
 
     function stopQr() {
         generation++
@@ -34,35 +39,47 @@ export function usePlatformLogin(adapter: LoginAdapter) {
         error.value = err instanceof Error ? err.message : String(err)
     }
 
-    async function run(action: () => Promise<void>) {
-        if (busy.value || disposed) return
+    function run(action: () => Promise<void>, kind = 'action'): Promise<void> {
+        if (busy.value || disposed) return Promise.resolve()
         stopQr()
         const current = generation
         busy.value = true
+        actionKind = kind
         error.value = ''
-        try {
-            await action()
-        } catch (err) {
-            if (!disposed && current === generation) showError(err)
-        } finally {
-            if (!disposed && current === generation) busy.value = false
-        }
+        activeRun = (async () => {
+            try {
+                await action()
+            } catch (err) {
+                if (!disposed && current === generation) showError(err)
+            } finally {
+                if (!disposed && current === generation) {
+                    busy.value = false
+                    actionKind = ''
+                }
+            }
+        })()
+        return activeRun
     }
 
-    async function checkStatus() {
+    async function checkStatus(renew = false) {
         return run(async () => {
             const current = generation
             checking.value = true
             statusKnown.value = false
             try {
-                const result = await adapter.status()
+                const result = await (renew && adapter.refresh
+                    ? adapter.refresh()
+                    : adapter.status())
                 if (disposed || current !== generation) return
                 account.value = result
                 statusKnown.value = true
+                error.value = result.expired
+                    ? result.message || '登录已失效，请重新登录'
+                    : ''
             } finally {
                 if (!disposed && current === generation) checking.value = false
             }
-        })
+        }, 'status')
     }
 
     async function poll(id: string, current: number) {
@@ -100,7 +117,7 @@ export function usePlatformLogin(adapter: LoginAdapter) {
             qrImage.value = result.image
             qrStatus.value = 'waiting'
             timer = setTimeout(() => void poll(result.id, current), 2000)
-        })
+        }, 'qr')
     }
 
     function login(values: LoginValues) {
@@ -109,8 +126,26 @@ export function usePlatformLogin(adapter: LoginAdapter) {
             const result = await adapter.manual(values)
             if (disposed || current !== generation) return
             if (!result.loggedIn) throw new Error('凭据验证失败，请检查后重试')
-            account.value = result
-            statusKnown.value = true
+            if (options.verifyAfterLogin) {
+                // 导入凭据可能只完成格式校验；在线确认前不能展示为已登录。
+                statusKnown.value = false
+                checking.value = true
+                try {
+                    const verified = await adapter.status()
+                    if (disposed || current !== generation) return
+                    account.value = verified
+                    statusKnown.value = true
+                    error.value = verified.expired
+                        ? verified.message || '登录已失效，请重新登录'
+                        : ''
+                } finally {
+                    if (!disposed && current === generation)
+                        checking.value = false
+                }
+            } else {
+                account.value = result
+                statusKnown.value = true
+            }
         })
     }
 
@@ -125,15 +160,7 @@ export function usePlatformLogin(adapter: LoginAdapter) {
     }
 
     function refresh() {
-        const action = adapter.refresh
-        if (!action) return
-        return run(async () => {
-            const current = generation
-            const result = await action()
-            if (disposed || current !== generation) return
-            account.value = result
-            statusKnown.value = true
-        })
+        return checkStatus(true)
     }
 
     function suspend() {
@@ -147,6 +174,23 @@ export function usePlatformLogin(adapter: LoginAdapter) {
         suspend()
     }
 
+    /** 页面离开只取消扫码流程，后台校验和已提交的登录操作仍可更新共享状态。 */
+    function cancelQr() {
+        if (qrImage.value || actionKind === 'qr') suspend()
+    }
+
+    function invalidateStatus() {
+        suspend()
+        statusKnown.value = false
+    }
+
+    function reset() {
+        suspend()
+        account.value = { loggedIn: false, userId: '', nickname: '' }
+        statusKnown.value = false
+        error.value = ''
+    }
+
     return {
         account,
         checking,
@@ -155,7 +199,12 @@ export function usePlatformLogin(adapter: LoginAdapter) {
         error,
         qrImage,
         qrStatus,
-        loggedIn: computed(() => account.value.loggedIn),
+        loggedIn: computed(
+            () =>
+                statusKnown.value &&
+                account.value.loggedIn &&
+                !account.value.expired,
+        ),
         checkStatus,
         createQr,
         login,
@@ -164,5 +213,9 @@ export function usePlatformLogin(adapter: LoginAdapter) {
         stopQr,
         suspend,
         dispose,
+        cancelQr,
+        invalidateStatus,
+        reset,
+        whenIdle: () => activeRun,
     }
 }

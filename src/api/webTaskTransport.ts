@@ -37,6 +37,9 @@ function dispatchEvent(
         case 'task-removed':
             handlers.removed(data as string)
             break
+        case 'login-refresh-failed':
+            if (typeof data === 'string') handlers.loginRefreshFailed(data)
+            break
         case 'download-metadata-error': {
             const payload = data as { taskId: string; errorMsg: string }
             handlers.metadataError({

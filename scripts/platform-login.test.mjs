@@ -318,6 +318,19 @@ test('adapters normalize QQ credentials and both other platforms without leaking
             './musicApi': qq,
             './kugouLogin': { kugouLogin: other('kugou') },
             './neteaseLogin': { neteaseLogin: other('netease') },
+            './accountStatusApi': {
+                checkAccountStatus: async (platform, refresh) => {
+                    calls.push({
+                        platform,
+                        action: refresh ? 'refresh' : 'status',
+                    })
+                    return {
+                        loggedIn: true,
+                        userId: `${platform}-user`,
+                        nickname: '',
+                    }
+                },
+            },
         },
     )
     assert.equal(isLoginPlatform('kuwo'), false)
@@ -347,7 +360,7 @@ test('adapters normalize QQ credentials and both other platforms without leaking
             'nickname',
             'userId',
         ])
-        if (platform === 'netease')
+        if (platform !== 'kugou')
             assert.equal((await adapter.refresh()).loggedIn, true)
         else assert.equal(adapter.refresh, undefined)
         await adapter.logout()
